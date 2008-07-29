@@ -31,21 +31,32 @@ import java.awt.geom.Point2D;
 import java.io.Serializable;
 
 /**
- * Immutable 3DOF pose estimate for 2D object.
+ * Immutable 3DOF pose for 2D object.
  * @author Prasanna Velagapudi <pkv@cs.cmu.edu>
  */
 public class Pose2D implements Cloneable, Serializable {
+    
     /**
-     * 2D position vector in [x y] form.
+     * Determines if a de-serialized object is compatible with this class.
+     *
+     * Maintainers must change this value if and only if the new version
+     * of this class is not compatible with old versions. See Sun docs
+     * for <a href=http://java.sun.com/products/jdk/1.1/docs/guide
+     * /serialization/spec/version.doc.html> details. </a>
      */
-    private final double[] position;
+    public static final long serialVersionUID = 1L;
+
+    /**
+     * 2D cartesian coordinates.
+     */
+    private final double x,  y;
     
     /**
      * Planar rotation, where the positive direction is defined for a 
      * right-handed coordinate system.
      */
-    private final double rotation;
-    
+    private final double theta;
+
     /**
      * Construct a new 2D pose.
      * @param x the x-coordinate of the object
@@ -53,30 +64,29 @@ public class Pose2D implements Cloneable, Serializable {
      * @param theta the planar rotation of the object
      */
     public Pose2D(double x, double y, double theta) {
-        this.position = new double[2];
-        this.position[0] = x;
-        this.position[1] = y;
-        this.rotation = theta;
+        this.x = x;
+        this.y = y;
+        this.theta = theta;
     }
 
     /**
      * Accessor for the X position of the object.
      * @return the X position of the object.
      */
-    public double getX() { return position[0]; }
+    public double getX() { return x; }
     
     /**
      * Accessor for the Y position of the object.
      * @return the Y position of the object.
      */
-    public double getY() { return position[1]; }
+    public double getY() { return y; }
     
     /**
      * Accessor for the rotation of the object.
      * @return the rotation of the robot.
      */
     public double getTheta() {
-        return position[2];
+        return theta;
     }
     
     /**
@@ -84,21 +94,21 @@ public class Pose2D implements Cloneable, Serializable {
      * @return the 2D point with the coordinates of this pose.
      */
     public Point2D getPoint() {
-        return new Point2D.Double(position[0], position[1]);
+        return new Point2D.Double(x, y);
     }
 
     @Override
     public String toString() {
-        return "{" + getX() + ", " + getY() + "}";
+        return "{" + x + ", " + y + "}";
     }
 
     @Override
-    public Object clone() {
-        return new Pose2D(position[0], position[1], rotation);
+    public Pose2D clone() {
+        return new Pose2D(x, y, theta);
     }
 
     @Deprecated
     public Pose3D convertToPose3D() {
-        return new Pose3D(position[0], position[1], 0.0, 0.0, 0.0, rotation);
+        return new Pose3D(x, y, 0.0, 0.0, 0.0, theta);
     }
 }

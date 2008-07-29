@@ -31,25 +31,14 @@ import Jama.Matrix;
 import java.io.Serializable;
 
 /**
- * Immutable 6DOF pose estimate for 3D object.
+ * Immutable 6DOF pose for 3D object.
  * Math adapted from www.euclideanspace.com.
  * @author Prasanna Velagapudi <pkv@cs.cmu.edu>
  */
 public class Pose3D implements Cloneable, Serializable {
-    /**
-     * This defines the north pole singularity cutoff when converting 
-     * from quaternions to Euler angles.
-     */
-    public static final double SINGULARITY_NORTH_POLE = 0.49999;
     
     /**
-     * This defines the south pole singularity cutoff when converting 
-     * from quaternions to Euler angles.
-     */
-    public static final double SINGULARITY_SOUTH_POLE = -0.49999;
-    
-    /**
-     * Determines if a de-serialized file is compatible with this class.
+     * Determines if a de-serialized object is compatible with this class.
      *
      * Maintainers must change this value if and only if the new version
      * of this class is not compatible with old versions. See Sun docs
@@ -59,14 +48,14 @@ public class Pose3D implements Cloneable, Serializable {
     public static final long serialVersionUID = 1L;
     
     /**
-     * 3D position vector in [x y z] form.
+     * 3D cartesian coordinates.
      */
-    private final double[] position;
+    private final double x, y, z;
     
     /**
-     * 4D rotation quaternion in [w x y z] form.
+     * 4D rotation quaternion.
      */
-    private final double[] rotation;
+    private final Quaternion rotation;
     
     /** 
      * Constructs a new pose.
@@ -76,16 +65,20 @@ public class Pose3D implements Cloneable, Serializable {
     public Pose3D(double[] position, double[] rotation) {
         // Fail if position matrix does not match expected size
         if (position.length != 3) 
-            throw new IllegalArgumentException();
-        this.position = position;
+            throw new IllegalArgumentException("Position must be a 3D vector.");
+        this.x = position[0];
+        this.y = position[1];
+        this.z = position[2];
         
         // If we get three rotation params, assume we got RPY format
         if (rotation.length == 3) {
             // convert from RPY to quaternion
-            this.rotation = convertEulerToQuat(rotation);
+            this.rotation = Quaternion.fromEulerAngles(rotation[0], rotation[1], 
+                    rotation[2]);
         } else if (rotation.length == 4) {
             // already in quaternion format
-            this.rotation = rotation;
+            this.rotation = new Quaternion(rotation[0], rotation[1], 
+                    rotation[2], rotation[3]);
         } else {
             throw new IllegalArgumentException();
         }
@@ -101,12 +94,24 @@ public class Pose3D implements Cloneable, Serializable {
                 || (transform.getColumnDimension() != 4) )
             throw new IllegalArgumentException();
         
-        this.position = new double[] {
-            transform.get(0,3),
-            transform.get(1,3),
-            transform.get(2,3)
-        };
-        this.rotation = convertHTToQuat(transform);
+        this.x = transform.get(0,3);
+        this.y = transform.get(1,3);
+        this.z = transform.get(2,3);
+        this.rotation = Quaternion.fromTransform(transform);
+    }
+    
+    /** 
+     * Constructs a new pose.
+     * @param x the X position of the robot.
+     * @param y the Y position of the robot.
+     * @param z the Z position of the robot.
+     * @param q the rotation of the robot in quaternion form.
+     */
+    public Pose3D(double x, double y, double z, Quaternion q) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.rotation = q;
     }
     
     /** 
@@ -121,7 +126,10 @@ public class Pose3D implements Cloneable, Serializable {
      */
     public Pose3D(double x, double y, double z, 
             double qw, double qx, double qy, double qz) {
-        this(new double[] {x,y,z}, new double[] {qw, qx, qy, qz});
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.rotation = new Quaternion(qw, qx, qy, qz);
     }
     
     /** 
@@ -135,135 +143,57 @@ public class Pose3D implements Cloneable, Serializable {
      */
     public Pose3D(double x, double y, double z, 
             double roll, double pitch, double yaw) {
-        this(new double[] {x,y,z}, new double[] {roll, pitch, yaw});
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.rotation = Quaternion.fromEulerAngles(roll, pitch, yaw);
     }
     
     /**
      * Accessor for the X position of the robot.
      * @return the X position of the robot.
      */
-    public double getX() { return position[0]; }
+    public double getX() { return x; }
     
     /**
      * Accessor for the Y position of the robot.
      * @return the Y position of the robot.
      */
-    public double getY() { return position[1]; }
+    public double getY() { return y; }
     
     /**
      * Accessor for the Z position of the robot.
      * @return the Z position of the robot.
      */
-    public double getZ() { return position[2]; }
+    public double getZ() { return z; }
     
     /**
      * Accessor for the position of the robot.
      * @return the 3D position of the robot.
      */
-    public double[] getPosition() { return position.clone(); }
+    public double[] getPosition() { return new double[] { x, y, z }; }
     
     /**
      * Accessor for the position of the robot in Jama matrix form.
      * @return the 3D position of the robot as a Jama matrix.
      */
-    public Matrix getPositionVector() { return new Matrix(position, 3); }
-    
-    /**
-     * Accessor for the roll of the robot.
-     * @return the roll position of the robot.
-     */
-    public double getRoll() {
-        // This is a test for singularities
-        double test = rotation[1]*rotation[2] + rotation[3]*rotation[0];
-        
-        // Special case for north pole
-        if (test > SINGULARITY_NORTH_POLE)
-            return 0;
-        
-        // Special case for south pole
-        if (test < SINGULARITY_SOUTH_POLE)
-            return 0;
-            
-        return Math.atan2( 
-                    2*rotation[1]*rotation[0] - 2*rotation[2]*rotation[3],
-                    1 - 2*rotation[1]*rotation[1] - 2*rotation[3]*rotation[3]
-                ); 
-    }
-    
-    /**
-     * Accessor for the pitch of the robot.
-     * @return the pitch of the robot.
-     */
-    public double getPitch() { 
-        // This is a test for singularities
-        double test = rotation[1]*rotation[2] + rotation[3]*rotation[0];
-        
-        // Special case for north pole
-        if (test > SINGULARITY_NORTH_POLE)
-            return Math.PI/2;
-        
-        // Special case for south pole
-        if (test < SINGULARITY_SOUTH_POLE)
-            return -Math.PI/2;
-        
-        return Math.asin(2*test); 
-    }
-    
-    /**
-     * Accessor for the yaw of the robot.
-     * @return the yaw of the robot.
-     */
-    public double getYaw() {
-        // This is a test for singularities
-        double test = rotation[1]*rotation[2] + rotation[3]*rotation[0];
-        
-        // Special case for north pole
-        if (test > SINGULARITY_NORTH_POLE)
-            return 2 * Math.atan2(rotation[1], rotation[0]);
-        
-        // Special case for south pole
-        if (test < SINGULARITY_SOUTH_POLE)
-            return -2 * Math.atan2(rotation[1], rotation[0]);
-        
-        return Math.atan2(
-                    2*rotation[2]*rotation[0] - 2*rotation[1]*rotation[3],
-                    1 - 2*rotation[2]*rotation[2] - 2*rotation[3]*rotation[3]
-                ); 
-    }
+    public Matrix getPositionVector() { return new Matrix(getPosition(), 3); }
     
     /**
      * Accessor for the quaternion of the robot orientation in [w x y z] form.
      * @return the 4D quaternion representing robot orientation.
      */
-    public double[] getRotation() { return rotation.clone(); }
-    
-    /**
-     * Accessor for the quaternion of the robot orientation in [w x y z] form.
-     * @return the 4D quaternion Jama matrix representing robot orientation.
-     */
-    public Matrix getRotationVector() { return new Matrix(rotation, 4); }
-    
-    /**
-     * Accessor for the robot orientation as a rotation matrix.
-     * @return a 3x3 rotation matrix representing robot orientation.
-     */
-    public Matrix getRotationMatrix() { return convertQuatToMat(rotation); }
-    
-    /** 
-     * Accessor for the robot orientation as a homogenous transformation.
-     * @return a 4x4 homogeneous tranformation matrix for robot orientation.
-     */
-    public Matrix getRotationTransform() { return convertQuatToHT(rotation); }
+    public Quaternion getRotation() { return rotation; }
     
     /** 
      * Accessor for the robot pose as a homogenous transformation.
      * @return a 4x4 homogeneous tranformation matrix for robot pose.
      */
     public Matrix getTransform() {
-        Matrix ht = convertQuatToHT(rotation); 
-        ht.set(0, 3, position[0]);
-        ht.set(1, 3, position[1]);
-        ht.set(2, 3, position[2]);
+        Matrix ht = rotation.toRotation();
+        ht.set(0, 3, x);
+        ht.set(1, 3, y);
+        ht.set(2, 3, z);
         return ht;
     }
     
@@ -278,16 +208,26 @@ public class Pose3D implements Cloneable, Serializable {
      */
     public double getEuclideanDistanceSqr(Pose3D p) {
         double dist = 0.0;
-        double tmpDiff = 0.0;
         
-        for (int i = 0; i < position.length; i++) {
-            // Discount fields that are NaN
-            if (Double.isNaN(position[i]) || Double.isNaN(position[i]))
-                continue;
+        // Discount fields that are NaN
+        if (!Double.isNaN(this.x) && !Double.isNaN(p.x)) {
+            // Take the square of the distance
+            double diffX = (this.x - p.x);
+            dist += diffX * diffX;
+        }
             
-            // Take the square of the distance in each dimension
-            tmpDiff = (position[i] - p.position[i]);
-            dist += tmpDiff * tmpDiff;
+        // Discount fields that are NaN
+        if (!Double.isNaN(this.y) && !Double.isNaN(p.y)) {
+            // Take the square of the distance
+            double diffY = (this.y - p.y);
+            dist += diffY * diffY;
+        }
+        
+        // Discount fields that are NaN
+        if (!Double.isNaN(this.z) && !Double.isNaN(p.z)) {
+            // Take the square of the distance
+            double diffZ = (this.z - p.z);
+            dist += diffZ * diffZ;
         }
         
         return dist;
@@ -317,123 +257,7 @@ public class Pose3D implements Cloneable, Serializable {
      * @return true if the poses are equivalent, false otherwise.
      */
     public boolean isEquivalent(Pose3D p) {
-        //TODO: finish this method
         throw new UnsupportedOperationException("Not implemented yet.");
-    }
-    
-    /**
-     * @see java.lang.Object#equals(java.lang.Object) 
-     */
-    public boolean equals(Pose3D p) {
-        //TODO: finish this method properly
-        if (Math.abs(this.getX() - p.getX()) > 1e-5) return false;
-        if (Math.abs(this.getY() - p.getY()) > 1e-5) return false;
-        if (Math.abs(this.getZ() - p.getZ()) > 1e-5) return false;
-        if (Math.abs(this.getRoll() - p.getRoll()) > 1e-5) return false;
-        if (Math.abs(this.getPitch() - p.getPitch()) > 1e-5) return false;
-        if (Math.abs(this.getYaw() - p.getYaw()) > 1e-5) return false;
-        return true;
-    }
-    
-    private static Matrix convertQuatToMat(double[] quat) {
-        double[][] m = new double[3][3];
-        
-        // Compute necessary components
-        double xx = quat[1] * quat[1];
-        double xy = quat[1] * quat[2];
-        double xz = quat[1] * quat[3];
-        double xw = quat[1] * quat[0];
-        double yy = quat[2] * quat[2];
-        double yz = quat[2] * quat[3];
-        double yw = quat[2] * quat[0];
-        double zz = quat[3] * quat[3];
-        double zw = quat[0] * quat[0];
-        
-        // Compute rotation tranformation
-        // Compute rotation tranformation
-        m[0][0] = 1 - 2 * ( yy + zz );
-        m[0][1] =     2 * ( xy - zw );
-        m[0][2] =     2 * ( xz + yw );
-        m[1][0] =     2 * ( xy + zw );
-        m[1][1] = 1 - 2 * ( xx + zz );
-        m[1][2] =     2 * ( yz - xw );
-        m[2][0] =     2 * ( xz - yw );
-        m[2][1] =     2 * ( yz + xw );
-        m[2][2] = 1 - 2 * ( xx + yy );
-        
-        // Put into Jama format
-        return new Matrix(m);
-    }
-    
-    private static Matrix convertQuatToHT(double[] quat) {
-        double[][] m = new double[4][4];
-        
-        // Compute necessary components
-        double xx = quat[1] * quat[1];
-        double xy = quat[1] * quat[2];
-        double xz = quat[1] * quat[3];
-        double xw = quat[1] * quat[0];
-        double yy = quat[2] * quat[2];
-        double yz = quat[2] * quat[3];
-        double yw = quat[2] * quat[0];
-        double zz = quat[3] * quat[3];
-        double zw = quat[3] * quat[0];
-        
-        // Compute rotation tranformation
-        m[0][0] = 1 - 2 * ( yy + zz );
-        m[0][1] =     2 * ( xy - zw );
-        m[0][2] =     2 * ( xz + yw );
-        m[1][0] =     2 * ( xy + zw );
-        m[1][1] = 1 - 2 * ( xx + zz );
-        m[1][2] =     2 * ( yz - xw );
-        m[2][0] =     2 * ( xz - yw );
-        m[2][1] =     2 * ( yz + xw );
-        m[2][2] = 1 - 2 * ( xx + yy );
-        m[0][3] = m[1][3] = m[2][3] = m[3][0] = m[3][1] = m[3][2] = 0;
-        m[3][3] = 1;
-        
-        // Put into Jama format
-        return new Matrix(m);
-    }
-    
-    private static double[] convertHTToQuat(Matrix ht) {
-        double[] rot = new double[4];
-        double[][] m = ht.getArray();
-        
-        // Recover the magnitudes
-        rot[0] = Math.sqrt( Math.max( 0, 1 + m[0][0] + m[1][1] + m[2][2] ) ) / 2; 
-        rot[1] = Math.sqrt( Math.max( 0, 1 + m[0][0] - m[1][1] - m[2][2] ) ) / 2; 
-        rot[2] = Math.sqrt( Math.max( 0, 1 - m[0][0] + m[1][1] - m[2][2] ) ) / 2; 
-        rot[3] = Math.sqrt( Math.max( 0, 1 - m[0][0] - m[1][1] + m[2][2] ) ) / 2; 
-        
-        // Recover sign information
-        rot[1] *= Math.signum( m[2][1] - m[1][2] ); 
-        rot[2] *= Math.signum( m[0][2] - m[2][0] );
-        rot[3] *= Math.signum( m[1][0] - m[0][1] ); 
-        
-        return rot;
-    }
-    
-    private static double[] convertEulerToQuat(double[] rpy) {
-        double quat[] = new double[4];
-        
-        // Apply Euler angle transformations
-        // Derivation from www.euclideanspace.com
-        double c1 = Math.cos(rpy[2]/2.0);
-        double s1 = Math.sin(rpy[2]/2.0);
-        double c2 = Math.cos(rpy[1]/2.0);
-        double s2 = Math.sin(rpy[1]/2.0);
-        double c3 = Math.cos(rpy[0]/2.0);
-        double s3 = Math.sin(rpy[0]/2.0);
-        double c1c2 = c1*c2;
-        double s1s2 = s1*s2;
-        
-        // Compute quaternion from components
-        quat[0] = c1c2*c3 - s1s2*s3;
-        quat[1] = c1c2*s3 + s1s2*c3;
-        quat[2] = s1*c2*c3 + c1*s2*s3;
-        quat[3] = c1*s2*c3 - s1*c2*s3;
-        return quat;
     }
     
     @Override
@@ -441,44 +265,31 @@ public class Pose3D implements Cloneable, Serializable {
         if (!(obj instanceof Pose3D)) return false;
         Pose3D p = (Pose3D)obj;
         
-        double dx = p.getX() - this.getX();
-        if (!Double.isNaN(dx) && dx > 1e-6) return false;
-        
-        double dy = p.getY() - this.getY();
-        if (!Double.isNaN(dy) && dy > 1e-6) return false;
-        
-        double dz = p.getZ() - this.getY();
-        if (!Double.isNaN(dz) && dz > 1e-6) return false;
-        
-        double droll = p.getRoll() - p.getRoll();
-        if (!Double.isNaN(droll) && droll > 1e-6) return false;
-        
-        double dpitch = p.getPitch() - p.getPitch();
-        if (!Double.isNaN(dpitch) && dpitch > 1e-6) return false;
-        
-        double dyaw = p.getYaw() - p.getYaw();
-        if (!Double.isNaN(dyaw) && dyaw > 1e-6) return false;
-        
+        if (this.x != p.x) return false;
+        if (this.y != p.y) return false;
+        if (this.z != p.z) return false;
+        if (this.rotation != p.rotation) return false;
         return true;
     }
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 97 * hash + (this.position != null ? this.position.hashCode() : 0);
-        hash = 97 * hash + (this.rotation != null ? this.rotation.hashCode() : 0);
+        int hash = 5;
+        hash = 13 * hash + (int) (Double.doubleToLongBits(this.x) ^ (Double.doubleToLongBits(this.x) >>> 32));
+        hash = 13 * hash + (int) (Double.doubleToLongBits(this.y) ^ (Double.doubleToLongBits(this.y) >>> 32));
+        hash = 13 * hash + (int) (Double.doubleToLongBits(this.z) ^ (Double.doubleToLongBits(this.z) >>> 32));
+        hash = 13 * hash + (this.rotation != null ? this.rotation.hashCode() : 0);
         return hash;
     }
     
     @Override
-    public Object clone() {
-        return new Pose3D(position, rotation);
+    public Pose3D clone() {
+        return new Pose3D(getPosition(), rotation.getArray());
     }
     
     @Override
     public String toString() {
-        return "{" + getX() + ", " + getY() + ", " + getZ() + ", " 
-                + getRoll() + ", " + getPitch() + ", " + getYaw() + "}";
+        return "{" + x + ", " + y + ", " + z + ", " + rotation + "}";
     }
     
     /**
@@ -488,10 +299,7 @@ public class Pose3D implements Cloneable, Serializable {
      */
     @Deprecated
     public Pose2D convertToPose2D() {
-        return new Pose2D(
-                getX(), 
-                getY(),
-                getYaw());
+        return new Pose2D(x, y, rotation.toYaw());
     }
     
     /**
