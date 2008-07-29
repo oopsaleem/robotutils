@@ -53,6 +53,14 @@ public class Transform2D extends Matrix {
     }
 
     /**
+     * Wraps a 3 x 3 homogeneous transformation matrix.
+     * @param m a 3 x 3 homogeneous transformation matrix.
+     */
+    public Transform2D(Matrix m) {
+        super(m.getArray(), 3, 3);
+    }
+    
+    /**
      * Constructs a 3 x 3 homogeneous transformation matrix.
      * @param m a two-dimensional array of doubles.
      */
@@ -84,7 +92,7 @@ public class Transform2D extends Matrix {
                 });
     }
 
-    public static Transform2D getTranslation(double tx, double ty, double tz) {
+    public static Transform2D getTranslation(double tx, double ty) {
         return new Transform2D(new double[][]{
                     {1, 0, tx},
                     {0, 1, ty},
@@ -92,11 +100,17 @@ public class Transform2D extends Matrix {
                 });
     }
 
-    public static Transform2D getScaling(double sx, double sy, double sz) {
+    public static Transform2D getScaling(double sx, double sy) {
         return new Transform2D(new double[][]{
                     {sx, 0, 0},
                     {0, sy, 0},
                     {0, 0, 1},
                 });
+    }
+    
+    public static Transform2D getAroundPoint(Matrix t, double x, double y) {
+        Transform2D t1 = getTranslation(-x, -y);
+        Transform2D t3 = getTranslation(x, y);
+        return new Transform2D(t1.times(t.times(t3)));
     }
 }

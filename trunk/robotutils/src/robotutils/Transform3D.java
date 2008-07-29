@@ -51,6 +51,14 @@ public class Transform3D extends Matrix {
     public Transform3D() {
         super(identity, 4, 4);
     }
+    
+    /**
+     * Wraps a 4 x 4 homogeneous transformation matrix.
+     * @param m a 4 x 4 homogeneous transformation matrix.
+     */
+    public Transform3D(Matrix m) {
+        super(m.getArray(), 4, 4);
+    }
 
     /**
      * Constructs a 4 x 4 homogeneous transformation matrix.
@@ -109,5 +117,11 @@ public class Transform3D extends Matrix {
                     {0, 0, sz, 0},
                     {0, 0, 0, 1}
                 });
+    }
+    
+    public static Transform3D getAroundPoint(Matrix t, double x, double y, double z) {
+        Transform3D t1 = getTranslation(-x, -y, -z);
+        Transform3D t3 = getTranslation(x, y, z);
+        return new Transform3D(t1.times(t.times(t3)));
     }
 }
