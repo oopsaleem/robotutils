@@ -105,7 +105,7 @@ public class KalmanFilter {
     }
     
     /**
-     * Constructs a Kalman filter with a default motion model and no default
+     * Constructs a Kalman filter with a default motion model and default
      * observation model.
      * @param x the initial state estimate.
      * @param P the initial state covariance.
@@ -289,6 +289,6 @@ public class KalmanFilter {
      */
     public Matrix getObsNoise() {
         return (Matrix)myR.clone();
-    }    
+    }
     
 }
