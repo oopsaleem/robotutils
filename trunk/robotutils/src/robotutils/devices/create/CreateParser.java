@@ -36,7 +36,8 @@ import java.util.logging.Logger;
 /**
  * Parsing class that handles the details of converting raw information from 
  * the Create into usable Java objects.
- * @author pkv
+ * 
+ * @author Prasanna Velagapudi <pkv@cs.cmu.edu>
  */
 public class CreateParser {
     private static Logger logger = Logger.getLogger(CreateParser.class.getName());
