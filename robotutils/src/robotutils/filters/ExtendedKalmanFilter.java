@@ -25,8 +25,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package robotutils;
+package robotutils.filters;
 
+import robotutils.*;
 import Jama.Matrix;
 
 /**
