@@ -37,9 +37,7 @@ import javax.swing.event.EventListenerList;
 /**
  * This class implements the interface to the iRobot Create hardware.
  * 
- * @responsibility Pras Velagapudi
- * 
- * @author pkv
+ * @author Prasanna Velagapudi <pkv@cs.cmu.edu>
  */
 public class CreateInterface {
     private static Logger logger = Logger.getLogger(CreateInterface.class.getName());

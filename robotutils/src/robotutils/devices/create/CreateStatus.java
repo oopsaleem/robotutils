@@ -30,7 +30,7 @@ package robotutils.devices.create;
 /**
  * Object storing complete state information for a Create robot.
  *
- * @author pkv
+ * @author Prasanna Velagapudi <pkv@cs.cmu.edu>
  */
 public class CreateStatus {
     
