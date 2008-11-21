@@ -110,7 +110,7 @@ public class CreateInterface {
             in = serialPort.getInputStream();
             out = serialPort.getOutputStream();
         } catch (IOException e) {
-            logger.severe("Failed to get IO streams for " + portName + ": " + e);
+            logger.warning("Failed to get IO streams for " + portName + ": " + e);
             serialPort.close();
             serialPort = null;
             return false;
@@ -322,7 +322,7 @@ public class CreateInterface {
                 out.write((radius & 0xFF));
             }
         } catch (IOException e) {
-            logger.severe("Failed drive command: " + e);
+            logger.warning("Failed drive command: " + e);
             disconnect();
         }
     }
@@ -344,7 +344,7 @@ public class CreateInterface {
                 out.write((left & 0xFF));
             }
         } catch (IOException e) {
-            logger.severe("Failed drive direct command: " + e);
+            logger.warning("Failed drive direct command: " + e);
             disconnect();
         }
     }
@@ -404,7 +404,7 @@ public class CreateInterface {
             powerLEDColor = powerColor & 0xFF;
             powerLEDIntensity = powerIntensity & 0xFF;
         } catch (IOException e) {
-            logger.severe("Failed LED command: " + e);
+            logger.warning("Failed LED command: " + e);
             disconnect();
         }
     }

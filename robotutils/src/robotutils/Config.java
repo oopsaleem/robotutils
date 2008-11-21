@@ -35,6 +35,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.lang.reflect.Field;
+import java.util.logging.Logger;
 
 /**
  * A static autoconfiguration class to naively load and save parameters in a
@@ -45,7 +46,10 @@ import java.lang.reflect.Field;
  * @author Prasanna Velagapudi <pkv@cs.cmu.edu>
  */
 public class Config {
-    public static int ninja;
+    /**
+     * Static logging object for this class.s
+     */
+    private static Logger logger = Logger.getLogger(Config.class.getName());
     
     /**
      * Load a set of properties from an input stream, and attempt to set the 
@@ -96,7 +100,6 @@ public class Config {
             String key = c.getCanonicalName() + "." + f.getName();
             
             // Search for the value
-            // TODO: Handle writing NULLs to file
             String value = getValue(key);
             
             // Write the value to file
@@ -127,45 +130,46 @@ public class Config {
             }
             
             // Use the appropriate primitive parsing routine
-            if (f.getType() == Boolean.TYPE) {
+            Class cls = f.getType();
+            if (cls == Boolean.TYPE) {
                 f.setBoolean(f, Boolean.parseBoolean(value));
-            } else if (f.getType() == Byte.TYPE) {
+            } else if (cls == Byte.TYPE) {
                 f.setByte(f, Byte.parseByte(value));
-            } else if (f.getType() == Character.TYPE) {
+            } else if (cls == Character.TYPE) {
                 f.setChar(f, value.charAt(0));
-            } else if (f.getType() == Short.TYPE) {
+            } else if (cls == Short.TYPE) {
                 f.setShort(f, Short.parseShort(value));
-            } else if (f.getType() == Integer.TYPE) {
+            } else if (cls == Integer.TYPE) {
                 f.setInt(f, Integer.parseInt(value));
-            } else if (f.getType() == Long.TYPE) {
+            } else if (cls == Long.TYPE) {
                 f.setLong(f, Long.parseLong(value));
-            } else if (f.getType() == Float.TYPE) {
+            } else if (cls == Float.TYPE) {
                 f.setFloat(f, Float.parseFloat(value));
-            } else if (f.getType() == Double.TYPE) {
+            } else if (cls == Double.TYPE) {
                 f.setDouble(f, Double.parseDouble(value));
             } else {
-                // TODO: log this error
+                logger.warning("Unknown primitive type: " + cls);
             }
             
             f.set(null, value);
             return true;
         } catch (IndexOutOfBoundsException e) {
-            // TODO: Log this error
+            logger.warning("Unable to parse key: " + key);
             return false;
         } catch (ClassNotFoundException e) {
-            // TODO: Log this error
+            logger.warning("Referenced unknown class: " + key);
             return false;
         } catch (NoSuchFieldException e) {
-            // TODO: Log this error
+            logger.warning("Referenced unknown field: " + key);
             return false;
         } catch (NullPointerException e) {
-            // TODO: Log this error
+            logger.warning("Reflection failed: " + key);
             return false;
         } catch (IllegalAccessException e) {
-            // TODO: Log this error
+            logger.warning("Unable to access variable: " + key);
             return false;
         } catch (NumberFormatException e) {
-            // TODO: Log this error
+            logger.warning("Unable to parse value: " + value);
             return false;
         }
     }
@@ -185,24 +189,24 @@ public class Config {
             
             // We can only handle primitive classes properly
             if (!f.getType().isPrimitive()) {
-                // TODO: Log this warning
+                logger.warning("Variable is not a primitive: " + key);
             }
             
             return f.get(null).toString();
         } catch (IndexOutOfBoundsException e) {
-            // TODO: Log this error
+            logger.warning("Unable to parse key: " + key);
             return null;
         } catch (ClassNotFoundException e) {
-            // TODO: Log this error
+            logger.warning("Referenced unknown class: " + key);
             return null;
         } catch (NoSuchFieldException e) {
-            // TODO: Log this error
+            logger.warning("Referenced unknown field: " + key);
             return null;
         } catch (NullPointerException e) {
-            // TODO: Log this error
+            logger.warning("Reflection failed: " + key);
             return null;
         } catch (IllegalAccessException e) {
-            // TODO: Log this error
+            logger.warning("Unable to access variable: " + key);
             return null;
         }
     }
