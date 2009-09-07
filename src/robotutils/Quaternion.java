@@ -27,8 +27,9 @@
 
 package robotutils;
 
-import Jama.Matrix;
+import org.apache.commons.math.linear.RealMatrix;
 import java.io.Serializable;
+import org.apache.commons.math.linear.MatrixUtils;
 
 /**
  * Immutable quaternion representing 3D rotation.
@@ -130,11 +131,11 @@ public class Quaternion implements Cloneable, Serializable {
         return new double[] {w, x, y, z};
     }
     
-    public static Quaternion fromRotation(Matrix m) {
+    public static Quaternion fromRotation(RealMatrix m) {
         throw new UnsupportedOperationException("Not implemented yet.");
     }
     
-    public Matrix toRotation() {
+    public RealMatrix toRotation() {
         double[][] m = new double[3][3];
         
         // Compute necessary components
@@ -161,12 +162,12 @@ public class Quaternion implements Cloneable, Serializable {
         m[2][2] = 1 - 2 * ( xx + yy );
         
         // Put into Jama format
-        return new Matrix(m);
+        return MatrixUtils.createRealMatrix(m);
     }
     
-    public static Quaternion fromTransform(Matrix t) {
+    public static Quaternion fromTransform(RealMatrix t) {
         double[] q = new double[4];
-        double[][] m = t.getArray();
+        double[][] m = t.getData();
         
         // Recover the magnitudes
         q[0] = Math.sqrt( Math.max( 0, 1 + m[0][0] + m[1][1] + m[2][2] ) ) / 2; 
@@ -182,7 +183,7 @@ public class Quaternion implements Cloneable, Serializable {
         return new Quaternion(q);
     }
     
-    public Matrix toTransform() {
+    public RealMatrix toTransform() {
         double[][] m = new double[4][4];
         
         // Compute necessary components
@@ -210,7 +211,7 @@ public class Quaternion implements Cloneable, Serializable {
         m[3][3] = 1;
         
         // Put into Jama format
-        return new Matrix(m);
+        return MatrixUtils.createRealMatrix(m);
     }
     
     public static Quaternion fromEulerAngles(double roll, double pitch, double yaw) {
