@@ -28,7 +28,7 @@
 package robotutils.filters;
 
 import robotutils.*;
-import Jama.Matrix;
+import org.apache.commons.math.linear.RealMatrix;
 
 /**
  * An extension of the Kalman filter that allows for the motion models to be 
@@ -71,7 +71,7 @@ public class ExtendedKalmanFilter extends KalmanFilter {
      * @param x the initial state estimate.
      * @param P the initial state covariance.
      */
-    public ExtendedKalmanFilter(Matrix x, Matrix P) {
+    public ExtendedKalmanFilter(RealMatrix x, RealMatrix P) {
         super(x, P);
     }
     
@@ -84,7 +84,7 @@ public class ExtendedKalmanFilter extends KalmanFilter {
      * @param Q the default process noise.
      * @param B the default control model.
      */
-    public ExtendedKalmanFilter(Matrix x, Matrix P, 
+    public ExtendedKalmanFilter(RealMatrix x, RealMatrix P,
             StateDependentFunction F,
             StateDependentFunction Q,
             StateDependentFunction B) {
@@ -106,7 +106,7 @@ public class ExtendedKalmanFilter extends KalmanFilter {
      * @param H the default observation model.
      * @param R the default observation noise.
      */
-    public ExtendedKalmanFilter(Matrix x, Matrix P, 
+    public ExtendedKalmanFilter(RealMatrix x, RealMatrix P,
             StateDependentFunction F, 
             StateDependentFunction Q, 
             StateDependentFunction B,
@@ -124,10 +124,10 @@ public class ExtendedKalmanFilter extends KalmanFilter {
      * @param u the current control input.
      */
     @Override
-    public void predict(Matrix u) {
-        Matrix F = myF;
-        Matrix Q = myQ;
-        Matrix B = myB;
+    public void predict(RealMatrix u) {
+        RealMatrix F = myF;
+        RealMatrix Q = myQ;
+        RealMatrix B = myB;
         
         if (myFnF != null) {
             myFnF.eval(x);
@@ -150,7 +150,7 @@ public class ExtendedKalmanFilter extends KalmanFilter {
     public void predict(StateDependentFunction F, 
             StateDependentFunction Q, 
             StateDependentFunction B, 
-            Matrix u) {
+            RealMatrix u) {
         predict(F.eval(x), Q.eval(x), B.eval(x), u);
     }
     
@@ -159,8 +159,8 @@ public class ExtendedKalmanFilter extends KalmanFilter {
      */
     public void predict(StateDependentFunction F, 
             StateDependentFunction Q, 
-            Matrix B, 
-            Matrix u) {
+            RealMatrix B,
+            RealMatrix u) {
         predict(F.eval(x), Q.eval(x), B, u);
     }
     
@@ -168,9 +168,9 @@ public class ExtendedKalmanFilter extends KalmanFilter {
      * @see KalmanFilter#predict(Jama.Matrix, Jama.Matrix, Jama.Matrix, Jama.Matrix)
      */
     public void predict(StateDependentFunction F, 
-            Matrix Q, 
+            RealMatrix Q,
             StateDependentFunction B, 
-            Matrix u) {
+            RealMatrix u) {
         predict(F.eval(x), Q, B.eval(x), u);
     }
     
@@ -178,9 +178,9 @@ public class ExtendedKalmanFilter extends KalmanFilter {
      * @see KalmanFilter#predict(Jama.Matrix, Jama.Matrix, Jama.Matrix, Jama.Matrix)
      */
     public void predict(StateDependentFunction F, 
-            Matrix Q, 
-            Matrix B, 
-            Matrix u) {
+            RealMatrix Q,
+            RealMatrix B,
+            RealMatrix u) {
         predict(F.eval(x), Q, B, u);
     }
     
@@ -190,7 +190,7 @@ public class ExtendedKalmanFilter extends KalmanFilter {
     public void predict(Matrix F, 
             StateDependentFunction Q, 
             StateDependentFunction B, 
-            Matrix u) {
+            RealMatrix u) {
         predict(F, Q.eval(x), B.eval(x), u);
     }
     
@@ -199,8 +199,8 @@ public class ExtendedKalmanFilter extends KalmanFilter {
      */
     public void predict(Matrix F, 
             StateDependentFunction Q, 
-            Matrix B, 
-            Matrix u) {
+            RealMatrix B,
+            RealMatrix u) {
         predict(F, Q.eval(x), B, u);
     }
     
@@ -208,9 +208,9 @@ public class ExtendedKalmanFilter extends KalmanFilter {
      * @see KalmanFilter#predict(Jama.Matrix, Jama.Matrix, Jama.Matrix, Jama.Matrix)
      */
     public void predict(Matrix F, 
-            Matrix Q, 
+            RealMatrix Q,
             StateDependentFunction B, 
-            Matrix u) {
+            RealMatrix u) {
         predict(F, Q, B.eval(x), u);
     }
     
@@ -218,7 +218,7 @@ public class ExtendedKalmanFilter extends KalmanFilter {
      * @see KalmanFilter#predict(Jama.Matrix, Jama.Matrix, Jama.Matrix, Jama.Matrix) 
      */
     @Override
-    public void predict(Matrix F, Matrix Q, Matrix B, Matrix u) {
+    public void predict(RealMatrix F, RealMatrix Q, RealMatrix B, RealMatrix u) {
         super.predict(F, Q, B, u);
         updateMatrices();
     }
@@ -227,9 +227,9 @@ public class ExtendedKalmanFilter extends KalmanFilter {
      * @see KalmanFilter#update(Jama.Matrix) 
      */
     @Override
-    public void update(Matrix z) {
-        Matrix H = myH;
-        Matrix R = myR;
+    public void update(RealMatrix z) {
+        RealMatrix H = myH;
+        RealMatrix R = myR;
         
         if (myFnH != null) {
             myFnH.eval(x);
@@ -247,7 +247,7 @@ public class ExtendedKalmanFilter extends KalmanFilter {
      */
     public void update(StateDependentFunction H, 
             StateDependentFunction R, 
-            Matrix z) {
+            RealMatrix z) {
         update(H.eval(x), R.eval(x), z);
     }
     
@@ -255,17 +255,17 @@ public class ExtendedKalmanFilter extends KalmanFilter {
      * @see KalmanFilter#update(Jama.Matrix, Jama.Matrix, Jama.Matrix) 
      */
     public void update(StateDependentFunction H, 
-            Matrix R, 
-            Matrix z) {
+            RealMatrix R,
+            RealMatrix z) {
         update(H.eval(x), R, z);
     }
     
     /**
      * @see KalmanFilter#update(Jama.Matrix, Jama.Matrix, Jama.Matrix) 
      */
-    public void update(Matrix H, 
+    public void update(RealMatrix H,
             StateDependentFunction R, 
-            Matrix z) {
+            RealMatrix z) {
         update(H, R.eval(x), z);
     }
     
@@ -273,7 +273,7 @@ public class ExtendedKalmanFilter extends KalmanFilter {
      * @see KalmanFilter#update(Jama.Matrix, Jama.Matrix, Jama.Matrix) 
      */
     @Override
-    public void update(Matrix H, Matrix R, Matrix z) {
+    public void update(RealMatrix H, RealMatrix R, RealMatrix z) {
         super.update(H, R, z);
         updateMatrices();
     }
@@ -308,7 +308,7 @@ public class ExtendedKalmanFilter extends KalmanFilter {
      * @see KalmanFilter#setState(Jama.Matrix) 
      */
     @Override
-    public void setState(Matrix x) {
+    public void setState(RealMatrix x) {
         super.setState(x);
         updateMatrices();
     }

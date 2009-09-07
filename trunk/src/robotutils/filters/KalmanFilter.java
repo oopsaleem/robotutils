@@ -27,7 +27,8 @@
 
 package robotutils.filters;
 
-import Jama.Matrix;
+import org.apache.commons.math.linear.MatrixUtils;
+import org.apache.commons.math.linear.RealMatrix;
 
 /**
  * A lightweight Kalman filter implementation based on the Wikipedia article.
@@ -38,42 +39,42 @@ public class KalmanFilter {
     /**
      * Predicted state.
      */
-    protected Matrix x;
+    protected RealMatrix x;
     
     /**
      * Predicted state covariance.
      */
-    protected Matrix P;
+    protected RealMatrix P;
     
     /**
      * Optimal Kalman gain.
      */
-    protected Matrix K;
+    protected RealMatrix K;
         
     /**
      * Default process model (state transition matrix).
      */
-    protected Matrix myF;
+    protected RealMatrix myF;
     
     /**
      * Default process noise.
      */
-    protected Matrix myQ;
+    protected RealMatrix myQ;
     
     /**
      * Default control model (maps control vector to state space).
      */
-    protected Matrix myB;
+    protected RealMatrix myB;
     
     /**
      * Default observation model (maps observations to state space).
      */
-    protected Matrix myH;
+    protected RealMatrix myH;
     
     /**
      * Default observation noise.
      */
-    protected Matrix myR;
+    protected RealMatrix myR;
     
     /**
      * Constructs a Kalman filter with no default motion and observation
@@ -81,7 +82,7 @@ public class KalmanFilter {
      * @param x the initial state estimate.
      * @param P the initial state covariance.
      */
-    public KalmanFilter(Matrix x, Matrix P) {
+    public KalmanFilter(RealMatrix x, RealMatrix P) {
         this.x = x;
         this.P = P;
     }
@@ -95,8 +96,8 @@ public class KalmanFilter {
      * @param Q the default process noise.
      * @param B the default control model.
      */
-    public KalmanFilter(Matrix x, Matrix P, 
-            Matrix F, Matrix Q, Matrix B) {
+    public KalmanFilter(RealMatrix x, RealMatrix P,
+            RealMatrix F, RealMatrix Q, RealMatrix B) {
         this(x, P);
         
         myF = F;
@@ -115,9 +116,9 @@ public class KalmanFilter {
      * @param H the default observation model.
      * @param R the default observation noise.
      */
-    public KalmanFilter(Matrix x, Matrix P, 
-            Matrix F, Matrix Q, Matrix B,
-            Matrix H, Matrix R) {
+    public KalmanFilter(RealMatrix x, RealMatrix P,
+            RealMatrix F, RealMatrix Q, RealMatrix B,
+            RealMatrix H, RealMatrix R) {
         this(x, P, F, Q, B);
         
         myH = H;
@@ -129,7 +130,7 @@ public class KalmanFilter {
      * an estimate of the current state.
      * @param u the current control input.
      */
-    public void predict(Matrix u) {
+    public void predict(RealMatrix u) {
         predict(myF, myQ, myB, u);
     }
     
@@ -141,9 +142,9 @@ public class KalmanFilter {
      * @param B the control model.
      * @param u the current control input.
      */
-    public void predict(Matrix F, Matrix Q, Matrix B, Matrix u) {
-        x = F.times(x).plus(B.times(u));
-        P = F.times(P).times(F.transpose()).plus(Q);
+    public void predict(RealMatrix F, RealMatrix Q, RealMatrix B, RealMatrix u) {
+        x = F.multiply(x).add(B.multiply(u));
+        P = F.multiply(P).multiply(F.transpose()).add(Q);
     }
 
     /**
@@ -151,7 +152,7 @@ public class KalmanFilter {
      * using the default observation model.
      * @param z the current measurement.
      */
-    public void update(Matrix z) {
+    public void update(RealMatrix z) {
         update(myH, myR, z);
     }
     
@@ -162,20 +163,25 @@ public class KalmanFilter {
      * @param R the observation noise.
      * @param z the current measurement.
      */
-    public void update(Matrix H, Matrix R, Matrix z) {
-        Matrix I = Matrix.identity(K.getRowDimension(), H.getColumnDimension());
-        Matrix y = z.minus(H.times(x));
-        Matrix S = H.times(P).times(H.transpose()).plus(R);
-        K = P.times(H.transpose()).times(S.inverse());
-        x = x.plus(K.times(y));
-        P = I.minus(K.times(H)).times(P);
+    public void update(RealMatrix H, RealMatrix R, RealMatrix z) {
+        // Create a non-square identity matrix
+        RealMatrix I = MatrixUtils.createRealMatrix(K.getRowDimension(), H.getColumnDimension());
+        int dim = Math.min(K.getRowDimension(), H.getColumnDimension());
+        I = I.add(MatrixUtils.createRealIdentityMatrix(dim));
+
+        // Apply the rest of the Kalman update
+        RealMatrix y = z.subtract(H.multiply(x));
+        RealMatrix S = H.multiply(P).multiply(H.transpose()).add(R);
+        K = P.multiply(H.transpose()).multiply(S.inverse());
+        x = x.add(K.multiply(y));
+        P = I.subtract(K.multiply(H)).multiply(P);
     }
     
     /**
      * Sets the current state estimate.
      * @param x the new state estimate.
      */
-    public void setState(Matrix x) {
+    public void setState(RealMatrix x) {
         this.x = x;
     }
     
@@ -183,15 +189,15 @@ public class KalmanFilter {
      * Gets the current state estimate.
      * @return the current state estimate.
      */
-    public Matrix getState() {
-        return (Matrix)x.clone();
+    public RealMatrix getState() {
+        return x.copy();
     }
     
     /**
      * Sets the current state covariance.
      * @param P the new state covariance.
      */
-    public void setStateCov(Matrix P) {
+    public void setStateCov(RealMatrix P) {
         this.P = P;
     }
     
@@ -199,23 +205,23 @@ public class KalmanFilter {
      * Gets the current state covariance.
      * @return the current state covariance.
      */
-    public Matrix getStateCov() {
-        return (Matrix)P.clone();
+    public RealMatrix getStateCov() {
+        return P.copy();
     }
     
     /**
      * Gets the most recently computed Kalman gain.
      * @return the current Kalman gain.
      */
-    public Matrix getKalmanGain() {
-        return (Matrix)K.clone();
+    public RealMatrix getKalmanGain() {
+        return K.copy();
     }
     
     /**
      * Sets the default process model.
      * @param F the new process model. 
      */
-    public void setProcessModel(Matrix F) {
+    public void setProcessModel(RealMatrix F) {
         this.myF = F;
     }
     
@@ -223,15 +229,15 @@ public class KalmanFilter {
      * Gets the default process model.
      * @return the default process model.
      */
-    public Matrix getProcessModel() {
-        return (Matrix)myF.clone();
+    public RealMatrix getProcessModel() {
+        return myF.copy();
     }
     
     /**
      * Sets the default process noise.
      * @param Q the new process noise.
      */
-    public void setProcessNoise(Matrix Q) {
+    public void setProcessNoise(RealMatrix Q) {
         this.myQ = Q;
     }
     
@@ -239,15 +245,15 @@ public class KalmanFilter {
      * Gets the default process noise.
      * @return the default process noise.
      */
-    public Matrix getProcessNoise() {
-        return (Matrix)myQ.clone();
+    public RealMatrix getProcessNoise() {
+        return myQ.copy();
     }
     
     /**
      * Sets the default control model.
      * @param B the new control model.
      */
-    public void setControlModel(Matrix B) {
+    public void setControlModel(RealMatrix B) {
         this.myB = B;
     }
     
@@ -255,15 +261,15 @@ public class KalmanFilter {
      * Gets the default control model.
      * @return the default control model.
      */
-    public Matrix getControlModel() {
-        return (Matrix)myB.clone();
+    public RealMatrix getControlModel() {
+        return myB.copy();
     }
     
     /**
      * Sets the default observation model.
      * @param H the new observation model.
      */
-    public void setObsModel(Matrix H) {
+    public void setObsModel(RealMatrix H) {
         this.myH = H;
     }
     
@@ -271,15 +277,15 @@ public class KalmanFilter {
      * Gets the default observation model.
      * @return the default observation model.
      */
-    public Matrix getObsModel() {
-        return (Matrix)myH.clone();
+    public RealMatrix getObsModel() {
+        return myH.copy();
     }
     
     /**
      * Sets the default observation noise.
      * @param R the new observation noise.
      */
-    public void setObsNoise(Matrix R) {
+    public void setObsNoise(RealMatrix R) {
         this.myR = R;
     }
     
@@ -287,8 +293,8 @@ public class KalmanFilter {
      * Gets the default observation noise.
      * @return the default observation noise.
      */
-    public Matrix getObsNoise() {
-        return (Matrix)myR.clone();
+    public RealMatrix getObsNoise() {
+        return myR.copy();
     }
     
 }

@@ -27,7 +27,7 @@
 
 package robotutils;
 
-import Jama.Matrix;
+import org.apache.commons.math.linear.RealMatrix;
 
 /**
  * This interface defines a method that will take a state and return some
@@ -41,5 +41,5 @@ public interface StateDependentFunction {
      * @param x a state representation.
      * @return the result of the function evaluation.
      */
-    public Matrix eval(Matrix x);
+    public RealMatrix eval(RealMatrix x);
 }

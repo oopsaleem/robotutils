@@ -27,8 +27,11 @@
 
 package robotutils;
 
-import Jama.Matrix;
+import org.apache.commons.math.linear.RealMatrix;
 import java.io.Serializable;
+import org.apache.commons.math.linear.ArrayRealVector;
+import org.apache.commons.math.linear.MatrixUtils;
+import org.apache.commons.math.linear.RealVector;
 
 /**
  * Immutable 6DOF pose for 3D object.
@@ -88,15 +91,15 @@ public class Pose3D implements Cloneable, Serializable {
      * Constructs a new pose from a homogeneous transformation.
      * @param transform a 4x4 homogeneous absolute transformation.
      */
-    public Pose3D(Matrix transform) {
+    public Pose3D(RealMatrix transform) {
         // Fail if transformation matrix does not match expected size
         if ( (transform.getRowDimension() != 4) 
                 || (transform.getColumnDimension() != 4) )
             throw new IllegalArgumentException();
         
-        this.x = transform.get(0,3);
-        this.y = transform.get(1,3);
-        this.z = transform.get(2,3);
+        this.x = transform.getEntry(0,3);
+        this.y = transform.getEntry(1,3);
+        this.z = transform.getEntry(2,3);
         this.rotation = Quaternion.fromTransform(transform);
     }
     
@@ -177,7 +180,7 @@ public class Pose3D implements Cloneable, Serializable {
      * Accessor for the position of the robot in Jama matrix form.
      * @return the 3D position of the robot as a Jama matrix.
      */
-    public Matrix getPositionVector() { return new Matrix(getPosition(), 3); }
+    public RealVector getPositionVector() { return new ArrayRealVector(getPosition()); }
     
     /**
      * Accessor for the quaternion of the robot orientation in [w x y z] form.
@@ -189,11 +192,11 @@ public class Pose3D implements Cloneable, Serializable {
      * Accessor for the robot pose as a homogenous transformation.
      * @return a 4x4 homogeneous tranformation matrix for robot pose.
      */
-    public Matrix getTransform() {
-        Matrix ht = rotation.toRotation();
-        ht.set(0, 3, x);
-        ht.set(1, 3, y);
-        ht.set(2, 3, z);
+    public RealMatrix getTransform() {
+        RealMatrix ht = rotation.toRotation();
+        ht.setEntry(0, 3, x);
+        ht.setEntry(1, 3, y);
+        ht.setEntry(2, 3, z);
         return ht;
     }
     
@@ -311,8 +314,8 @@ public class Pose3D implements Cloneable, Serializable {
         Pose3D p = new Pose3D(100.0, 10.0, 20.0, 3.45, -2.34, 1.23);
         Pose3D q = new Pose3D(p.getTransform());
 
-        Matrix m = p.getTransform();
-        Matrix t = new Matrix(new double[][] {
+        RealMatrix m = p.getTransform();
+        RealMatrix t = MatrixUtils.createRealMatrix(new double[][] {
             {-0.23248, -0.51489, -0.82512, 100.0},
             {-0.71846,  0.66274, -0.21113, 10.0},
             { 0.65556,  0.54374, -0.52400, 20.0},
@@ -327,7 +330,7 @@ public class Pose3D implements Cloneable, Serializable {
         
         System.out.println("");
         System.out.println("The following matrices should be similar:");
-        m.print(4, 4);
-        t.print(4, 4);   
+        System.out.println(m);
+        System.out.println(t);
     }
 }
