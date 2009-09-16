@@ -27,10 +27,13 @@
 
 package robotutils.io;
 
-import java.io.File;
+import java.io.BufferedReader;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Scanner;
+import java.util.regex.Pattern;
 import robotutils.Pose3D;
 
 /**
@@ -38,8 +41,10 @@ import robotutils.Pose3D;
  * @author Prasanna Velagapudi <pkv@cs.cmu.edu>
  */
 public class VelodyneLoader {
-    Scanner state;
-    Scanner laser;
+    private static Pattern linePat = Pattern.compile(" *, *");
+
+    BufferedReader state;
+    BufferedReader laser;
 
     Vehicle curState = new Vehicle();
 
@@ -60,64 +65,62 @@ public class VelodyneLoader {
     }
 
     public void load(String stateFile, String laserFile) throws FileNotFoundException {
-        state = new Scanner(new File(stateFile));
-        laser = new Scanner(new File(laserFile));
+        state = new BufferedReader(new FileReader(stateFile));
+        laser = new BufferedReader(new FileReader(laserFile));
 
         curState.time = Double.NEGATIVE_INFINITY;
     }
 
     public Ray step() {
-        // If there are no more laser scans, just return null
-        if (!laser.hasNextLine()) return null;
+        try {
+            // Get next laser scan
+            Scan curScan = parseScan(laser.readLine());
 
-        // Get next laser scan
-        Scan curScan = parseScan(laser.nextLine());
+            while (curState.time < curScan.time) {
+                curState = parseState(state.readLine());
+            }
 
-        while(curState.time < curScan.time) {
-            if (!state.hasNextLine()) return null;
-            curState = parseState(state.nextLine());
+            // Get vehicle state at time of next laser scan
+            Ray ray = new Ray();
+            ray.time = curScan.time;
+            ray.pos = curState.pose.getPosition();
+            ray.ray = curState.pose.getRotation().toRotation().operate(curScan.ray.getPosition());
+
+            // Return next laser scan and state
+            return ray;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
         }
-
-        // Get vehicle state at time of next laser scan
-        Ray ray = new Ray();
-        ray.time = curScan.time;
-        ray.pos = curState.pose.getPosition();
-        ray.ray = curState.pose.getRotation().toRotation().operate(curScan.ray.getPosition());
-        
-        // Return next laser scan and state
-        return ray;
     }
 
     Scan parseScan(String line) {
-        Scanner s = new Scanner(line);
-        s.useDelimiter(" *, *");
-
+        String[] s = linePat.split(line);
+        
         Scan sc = new Scan();
-        sc.time = s.nextDouble();
-        s.next(); s.next(); s.next(); s.next();
-
-        double x = s.nextDouble();
-        double y = s.nextDouble();
-        double z = s.nextDouble();
+        sc.time = Double.parseDouble(s[0]);
+        
+        double x = Double.parseDouble(s[5]);
+        double y = Double.parseDouble(s[6]);
+        double z = Double.parseDouble(s[7]);
         
         sc.ray = new Pose3D(x, y, z, 0.0, 0.0, 0.0);
         return sc;
     }
 
     Vehicle parseState(String line) {
-        Scanner s = new Scanner(line);
-        s.useDelimiter(" *, *");
+        String[] s = linePat.split(line);
         
         Vehicle veh = new Vehicle();
-        veh.time = s.nextDouble();
+        veh.time = Double.parseDouble(s[0]);
 
-        double x = s.nextDouble();
-        double y = s.nextDouble();
-        double z = s.nextDouble();
+        double x = Double.parseDouble(s[1]);
+        double y = Double.parseDouble(s[2]);
+        double z = Double.parseDouble(s[3]);
 
-        double yaw = s.nextDouble();
-        double pitch = s.nextDouble();
-        double roll = s.nextDouble();
+        double yaw = Double.parseDouble(s[4]);
+        double pitch = Double.parseDouble(s[5]);
+        double roll = Double.parseDouble(s[6]);
 
         veh.pose = new Pose3D(x, y, z, roll, pitch, yaw);
         return veh;
@@ -133,7 +136,7 @@ public class VelodyneLoader {
         Ray r;
         int i = 0;
         while ((r = vl.step()) != null) {
-            System.out.println(":" + i++ + ": " + r.pos + ", " + r.ray);
+            System.out.println(":" + i++ + ": " + Arrays.toString(r.pos) + ", " + Arrays.toString(r.ray));
         }
     }
 }
