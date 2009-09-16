@@ -33,7 +33,8 @@ package robotutils.filters.occupancy;
  */
 public interface GridMap {
     public void resize(int[] dims);
-
+    public int size(int dim);
+    
     public byte get(int[] idx);
     public void set(int[] idx, byte val);
 }
