@@ -83,7 +83,7 @@ public class BiRRT<State, Action> {
             t.add(new Node(xuNew.state, xuNew.action, iNear));
 
             if (xuNew.state == x) {
-                return ;
+                return 0;
             } else {
                 return Condition.ADVANCED;
             }
@@ -116,7 +116,7 @@ public class BiRRT<State, Action> {
         return path;
     }
 
-    public boolean plan(State init, State goal, int iterations) {
+    public List plan(State init, State goal, int iterations) {
         List<Node> tmp = null;
 
         List<Node> tA = new ArrayList();
@@ -127,6 +127,7 @@ public class BiRRT<State, Action> {
 
         for (int k = 0; k < iterations; k++) {
             State xRand = sampler.random();
+            State xNew = null;
 
             if (!(extend(tA, xRand) == Condition.TRAPPED)) {
                 if (extend(tB, xNew) == Condition.REACHED) {
@@ -135,11 +136,11 @@ public class BiRRT<State, Action> {
             }
 
             // SWAP(Ta, Tb);
-            tmp = A;
-            A = B;
-            B = tmp;
+            tmp = tA;
+            tA = tB;
+            tB = tmp;
         }
 
-        return false;
+        return null;
     }
 }
