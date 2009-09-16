@@ -54,6 +54,9 @@ public class StaticMap implements GridMap {
         int linIdx = 0;
 
         for (int i = 0; i < dims.length; i++) {
+            if (idx[i] < 0) return -1;
+            if (idx[i] >= dims[i]) return -1;
+
             linIdx += cumDims[i]*idx[i];
         }
 
@@ -61,10 +64,17 @@ public class StaticMap implements GridMap {
     }
 
     public byte get(int[] idx) {
-        return map[index(idx)];
+        int i = index(idx);
+        return (i < 0) ? 0 : map[i];
     }
 
     public void set(int[] idx, byte val) {
-        map[index(idx)] = val;
+        int i = index(idx);
+        if (i < 0) return;
+        map[i] = val;
+    }
+
+    public int size(int dim) {
+        return dims[dim];
     }
 }

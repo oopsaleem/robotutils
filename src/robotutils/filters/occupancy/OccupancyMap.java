@@ -27,16 +27,63 @@
 
 package robotutils.filters.occupancy;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.util.Arrays;
+
 /**
  *
  * @author Prasanna Velagapudi <pkv@cs.cmu.edu>
  */
 public class OccupancyMap {
+    double ctr[];
+    double res;
+
     GridMap map = new StaticMap();
 
-    public OccupancyMap() {}
+    public OccupancyMap(int x, int y, int z,
+            double xctr, double yctr, double zctr,
+            double r) {
+        map.resize(new int[] {x, y, z});
+        ctr = new double[] {xctr, yctr, zctr};
+        res = r;
+    }
 
     public void addScan(double[] pos, double[] ray) {
+        int[] pt = new int[3];
 
+        pt[0] = (int)((pos[0] + ray[0]) / res - ctr[0]);
+        pt[1] = (int)((pos[1] + ray[1]) / res - ctr[1]);
+        pt[2] = (int)((pos[2] + ray[2]) / res - ctr[2]);
+
+        System.out.println("Point at " + Arrays.toString(pt));
+
+        map.set(pt, (byte)255);
+    }
+
+    public void save(String filename) {
+        try {
+            System.out.println("START: Serializing map.");
+            ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(filename));
+            out.writeShort(map.size(0));
+            out.writeShort(map.size(1));
+            out.writeShort(map.size(2));
+
+            int[] idx = new int[3];
+            for (idx[2] = 0; idx[2] < map.size(2); idx[2]++) {
+                for (idx[1] = 0; idx[1] < map.size(1); idx[1]++) {
+                    for (idx[0] = 0; idx[0] < map.size(0); idx[0]++) {
+                        out.writeByte(map.get(idx));
+                    }
+                }
+            }
+
+            out.flush();
+            out.close();
+            System.out.println("FINISH: Serializing map.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

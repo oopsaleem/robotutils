@@ -35,6 +35,7 @@ import java.util.Arrays;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 import robotutils.Pose3D;
+import robotutils.filters.occupancy.OccupancyMap;
 
 /**
  * Contains a script to load velodyne data from some random format.
@@ -133,10 +134,29 @@ public class VelodyneLoader {
         VelodyneLoader vl = new VelodyneLoader();
         vl.load(vehFile, veloFile);
 
-        Ray r;
-        int i = 0;
-        while ((r = vl.step()) != null) {
-            System.out.println(":" + i++ + ": " + Arrays.toString(r.pos) + ", " + Arrays.toString(r.ray));
+        OccupancyMap omap = new OccupancyMap(400, 400, 400,
+                //4473923.999042602, 589438.581795943, -201.3608791894574,
+                4473723.999042602, 589238.581795943, -241.3608791894574,
+                1);
+
+        for (int i = 1; i < 100000; i++) {
+            // Get next scan
+            Ray r = vl.step();
+            if (r == null) return;
+
+            // Add scan to occupancy grid
+            if (r.ray[0] == 0) continue;
+            if (r.ray[1] == 0) continue;
+            if (r.ray[2] == 0) continue;
+            omap.addScan(r.pos, r.ray);
+
+            // On certain intervals output iteration number
+            if (i % 10000 == 0)
+                System.out.println("i = " + i);
+
+            // On certain interval, output result
+            if (i % 99999 == 0)
+                omap.save("/Users/pkv/Desktop/velodyne/out.df3");
         }
     }
 }
