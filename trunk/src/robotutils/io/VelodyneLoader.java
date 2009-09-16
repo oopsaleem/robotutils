@@ -38,50 +38,70 @@ public class VelodyneLoader {
     Scanner state;
     Scanner laser;
 
-    public static class Scan {
+    Vehicle curState;
+
+    static class Scan {
         public double time;
-        public double dist;
-        public double phi;
-        public double theta;
+        public Pose3D ray;
     }
 
-    public static class Vehicle {
+    static class Vehicle {
         public double time;
         public Pose3D pose;
+    }
+
+    public static class Ray {
+        double pos[];
+        double ray[];
     }
 
     public void load(String stateFile, String laserFile) {
         state = new Scanner(stateFile);
         laser = new Scanner(laserFile);
 
-        double time = Double.NEGATIVE_INFINITY;
+        curState.time = Double.NEGATIVE_INFINITY;
     }
 
-    public Object step() {
+    public Ray step() {
         // If there are no more laser scans, just return null
         if (!laser.hasNextLine()) return null;
 
         // Get next laser scan
+        Scan curScan = parseScan(laser.nextLine());
+
+        while(curState.time < curScan.time) {
+            if (!state.hasNextLine()) return null;
+            curState = parseState(state.nextLine());
+        }
 
         // Get vehicle state at time of next laser scan
-
+        Ray ray = new Ray();
+        ray.pos = curState.pose.getPosition();
+        ray.ray = curState.pose.getRotation().toTransform().operate(curScan.ray.getPosition());
+        
         // Return next laser scan and state
-        return null;
+        return ray;
     }
 
-    public Scan parseScan(String line) {
+    Scan parseScan(String line) {
         Scanner s = new Scanner(line);
         s.useDelimiter(",");
 
+        //%n, %*n, %*n, %*n, %*n, %n, %n, %n');
+
         Scan sc = new Scan();
         sc.time = s.nextDouble();
-        sc.dist = s.nextDouble();
-        sc.phi = s.nextDouble();
-        sc.theta = s.nextDouble();
+        s.next(); s.next(); s.next(); s.next();
+        
+        double x = s.nextDouble();
+        double y = s.nextDouble();
+        double z = s.nextDouble();
+        
+        sc.ray = new Pose3D(x, y, z, 0.0, 0.0, 0.0);
         return sc;
     }
 
-    public Vehicle parseState(String line) {
+    Vehicle parseState(String line) {
         Scanner s = new Scanner(line);
         s.useDelimiter(",");
 
