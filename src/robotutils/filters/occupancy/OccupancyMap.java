@@ -36,7 +36,7 @@ public class OccupancyMap {
 
     public OccupancyMap() {}
 
-    public void addScan(double ray, double[] pos, double[] dir) {
+    public void addScan(double[] pos, double[] ray) {
 
     }
 }
