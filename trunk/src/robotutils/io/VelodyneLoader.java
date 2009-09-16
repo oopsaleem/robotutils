@@ -27,10 +27,76 @@
 
 package robotutils.io;
 
+import java.util.Scanner;
+import robotutils.Pose3D;
+
 /**
  * Contains a script to load velodyne data from some random format.
  * @author Prasanna Velagapudi <pkv@cs.cmu.edu>
  */
 public class VelodyneLoader {
+    Scanner state;
+    Scanner laser;
 
+    public static class Scan {
+        public double time;
+        public double dist;
+        public double phi;
+        public double theta;
+    }
+
+    public static class Vehicle {
+        public double time;
+        public Pose3D pose;
+    }
+
+    public void load(String stateFile, String laserFile) {
+        state = new Scanner(stateFile);
+        laser = new Scanner(laserFile);
+
+        double time = Double.NEGATIVE_INFINITY;
+    }
+
+    public Object step() {
+        // If there are no more laser scans, just return null
+        if (!laser.hasNextLine()) return null;
+
+        // Get next laser scan
+
+        // Get vehicle state at time of next laser scan
+
+        // Return next laser scan and state
+        return null;
+    }
+
+    public Scan parseScan(String line) {
+        Scanner s = new Scanner(line);
+        s.useDelimiter(",");
+
+        Scan sc = new Scan();
+        sc.time = s.nextDouble();
+        sc.dist = s.nextDouble();
+        sc.phi = s.nextDouble();
+        sc.theta = s.nextDouble();
+        return sc;
+    }
+
+    public Vehicle parseState(String line) {
+        Scanner s = new Scanner(line);
+        s.useDelimiter(",");
+
+        Vehicle veh = new Vehicle();
+        veh.time = s.nextDouble();
+
+        double x = s.nextDouble();
+        double y = s.nextDouble();
+        double z = s.nextDouble();
+
+        double yaw = s.nextDouble();
+        double pitch = s.nextDouble();
+        double roll = s.nextDouble();
+
+        veh.pose = new Pose3D(x, y, z, roll, pitch, yaw);
+        return veh;
+    }
 }
