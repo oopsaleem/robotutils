@@ -58,7 +58,7 @@ public class OccupancyMap {
         pt[1] = (int)((pos[1] + ray[1]) / res - ctr[1]);
         pt[2] = (int)((pos[2] + ray[2]) / res - ctr[2]);
 
-        System.out.println("Point at " + Arrays.toString(pt) + ", " + map.get(pt));
+        //System.out.println("Point at " + Arrays.toString(pt) + ", " + map.get(pt));
 
         map.set(pt, (byte)255);
     }
@@ -76,9 +76,7 @@ public class OccupancyMap {
             for (idx[2] = 0; idx[2] < map.size(2); idx[2]++) {
                 for (idx[1] = 0; idx[1] < map.size(1); idx[1]++) {
                     for (idx[0] = 0; idx[0] < map.size(0); idx[0]++) {
-                        int i = (map.get(idx) == 0) ? 0 : 255;
-                        if (i > 127) System.out.println(i);
-                        out.write(i);
+                        out.write((map.get(idx) == 0) ? 0 : 255);
                     }
                 }
             }
