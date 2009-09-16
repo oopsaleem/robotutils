@@ -147,32 +147,32 @@ public class ExtendedKalmanFilter extends KalmanFilter {
     /**
      * @see KalmanFilter#predict(Jama.Matrix, Jama.Matrix, Jama.Matrix, Jama.Matrix)
      */
-    public void predict(StateDependentFunction F, 
-            StateDependentFunction Q, 
-            StateDependentFunction B, 
-            RealMatrix u) {
-        predict(F.eval(x), Q.eval(x), B.eval(x), u);
-    }
+//    public void predict(StateDependentFunction F,
+//            StateDependentFunction Q,
+//            StateDependentFunction B,
+//            RealMatrix u) {
+//        predict(F.eval(x), Q.eval(x), B.eval(x), u);
+//    }
     
     /**
      * @see KalmanFilter#predict(Jama.Matrix, Jama.Matrix, Jama.Matrix, Jama.Matrix)
      */
-    public void predict(StateDependentFunction F, 
-            StateDependentFunction Q, 
-            RealMatrix B,
-            RealMatrix u) {
-        predict(F.eval(x), Q.eval(x), B, u);
-    }
+//    public void predict(StateDependentFunction F,
+//            StateDependentFunction Q,
+//            RealMatrix B,
+//            RealMatrix u) {
+//        predict(F.eval(x), Q.eval(x), B, u);
+//    }
     
     /**
      * @see KalmanFilter#predict(Jama.Matrix, Jama.Matrix, Jama.Matrix, Jama.Matrix)
      */
-    public void predict(StateDependentFunction F, 
-            RealMatrix Q,
-            StateDependentFunction B, 
-            RealMatrix u) {
-        predict(F.eval(x), Q, B.eval(x), u);
-    }
+//    public void predict(StateDependentFunction F,
+//            RealMatrix Q,
+//            StateDependentFunction B,
+//            RealMatrix u) {
+//        predict(F.eval(x), Q, B.eval(x), u);
+//    }
     
     /**
      * @see KalmanFilter#predict(Jama.Matrix, Jama.Matrix, Jama.Matrix, Jama.Matrix)
@@ -187,7 +187,7 @@ public class ExtendedKalmanFilter extends KalmanFilter {
     /**
      * @see KalmanFilter#predict(Jama.Matrix, Jama.Matrix, Jama.Matrix, Jama.Matrix)
      */
-    public void predict(Matrix F, 
+    public void predict(RealMatrix F,
             StateDependentFunction Q, 
             StateDependentFunction B, 
             RealMatrix u) {
@@ -197,7 +197,7 @@ public class ExtendedKalmanFilter extends KalmanFilter {
     /**
      * @see KalmanFilter#predict(Jama.Matrix, Jama.Matrix, Jama.Matrix, Jama.Matrix)
      */
-    public void predict(Matrix F, 
+    public void predict(RealMatrix F,
             StateDependentFunction Q, 
             RealMatrix B,
             RealMatrix u) {
@@ -207,7 +207,7 @@ public class ExtendedKalmanFilter extends KalmanFilter {
     /**
      * @see KalmanFilter#predict(Jama.Matrix, Jama.Matrix, Jama.Matrix, Jama.Matrix)
      */
-    public void predict(Matrix F, 
+    public void predict(RealMatrix F,
             RealMatrix Q,
             StateDependentFunction B, 
             RealMatrix u) {
