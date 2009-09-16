@@ -47,19 +47,19 @@ public class StaticMapTest {
         StaticMap instance = new StaticMap();
         instance.resize(dims);
 
-        assertSame(instance.dims.length, 3);
+        assertEquals(3, instance.dims.length, 3);
 
-        assertSame(instance.dims[0], 100);
-        assertSame(instance.dims[1], 400);
-        assertSame(instance.dims[2], 200);
+        assertEquals(100, instance.dims[0]);
+        assertEquals(400, instance.dims[1]);
+        assertEquals(200, instance.dims[2]);
 
-        assertSame(instance.cumDims.length, 3);
+        assertEquals(3, instance.cumDims.length);
 
-        assertSame(instance.cumDims[0], 1);
-        assertSame(instance.cumDims[1], 100);
-        assertSame(instance.cumDims[2], 100*400);
+        assertEquals(1, instance.cumDims[0]);
+        assertEquals(100, instance.cumDims[1]);
+        assertEquals(100*400, instance.cumDims[2]);
 
-        assertSame(instance.map.length, 100*400*200);
+        assertEquals(100*400*200, instance.map.length);
     }
 
     /**
