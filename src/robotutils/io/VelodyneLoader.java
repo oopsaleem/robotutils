@@ -27,6 +27,9 @@
 
 package robotutils.io;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Scanner;
 import robotutils.Pose3D;
 
@@ -38,7 +41,7 @@ public class VelodyneLoader {
     Scanner state;
     Scanner laser;
 
-    Vehicle curState;
+    Vehicle curState = new Vehicle();
 
     static class Scan {
         public double time;
@@ -51,13 +54,14 @@ public class VelodyneLoader {
     }
 
     public static class Ray {
+        double time;
         double pos[];
         double ray[];
     }
 
-    public void load(String stateFile, String laserFile) {
-        state = new Scanner(stateFile);
-        laser = new Scanner(laserFile);
+    public void load(String stateFile, String laserFile) throws FileNotFoundException {
+        state = new Scanner(new File(stateFile));
+        laser = new Scanner(new File(laserFile));
 
         curState.time = Double.NEGATIVE_INFINITY;
     }
@@ -76,8 +80,9 @@ public class VelodyneLoader {
 
         // Get vehicle state at time of next laser scan
         Ray ray = new Ray();
+        ray.time = curScan.time;
         ray.pos = curState.pose.getPosition();
-        ray.ray = curState.pose.getRotation().toTransform().operate(curScan.ray.getPosition());
+        ray.ray = curState.pose.getRotation().toRotation().operate(curScan.ray.getPosition());
         
         // Return next laser scan and state
         return ray;
@@ -85,14 +90,12 @@ public class VelodyneLoader {
 
     Scan parseScan(String line) {
         Scanner s = new Scanner(line);
-        s.useDelimiter(",");
-
-        //%n, %*n, %*n, %*n, %*n, %n, %n, %n');
+        s.useDelimiter(" *, *");
 
         Scan sc = new Scan();
         sc.time = s.nextDouble();
         s.next(); s.next(); s.next(); s.next();
-        
+
         double x = s.nextDouble();
         double y = s.nextDouble();
         double z = s.nextDouble();
@@ -103,8 +106,8 @@ public class VelodyneLoader {
 
     Vehicle parseState(String line) {
         Scanner s = new Scanner(line);
-        s.useDelimiter(",");
-
+        s.useDelimiter(" *, *");
+        
         Vehicle veh = new Vehicle();
         veh.time = s.nextDouble();
 
@@ -118,5 +121,19 @@ public class VelodyneLoader {
 
         veh.pose = new Pose3D(x, y, z, roll, pitch, yaw);
         return veh;
+    }
+
+    public static void main(String[] args) throws IOException {
+        String vehFile = "/Users/pkv/Desktop/velodyne/VehicleState.csv";
+        String veloFile = "/Users/pkv/Desktop/velodyne/velodyne_1190939875_091112.txt";
+
+        VelodyneLoader vl = new VelodyneLoader();
+        vl.load(vehFile, veloFile);
+
+        Ray r;
+        int i = 0;
+        while ((r = vl.step()) != null) {
+            System.out.println(":" + i++ + ": " + r.pos + ", " + r.ray);
+        }
     }
 }
