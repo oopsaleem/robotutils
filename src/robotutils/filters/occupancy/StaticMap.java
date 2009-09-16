@@ -40,7 +40,7 @@ public class StaticMap implements GridMap {
 
     public void resize(int[] dims) {
         this.dims = Arrays.copyOf(dims, dims.length);
-        this.cumDims = new int[dims.length + 1];
+        this.cumDims = new int[dims.length];
 
         this.cumDims[0] = 1;
         for (int i = 1; i < dims.length; i++) {
