@@ -28,8 +28,10 @@
 package robotutils.io;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Scanner;
@@ -75,10 +77,14 @@ public class VelodyneLoader {
     public Ray step() {
         try {
             // Get next laser scan
-            Scan curScan = parseScan(laser.readLine());
+            String scanLine = laser.readLine();
+            if (scanLine == null) return null;
+            Scan curScan = parseScan(scanLine);
 
             while (curState.time < curScan.time) {
-                curState = parseState(state.readLine());
+                String stateLine = state.readLine();
+                if (stateLine == null) return null;
+                curState = parseState(stateLine);
             }
 
             // Get vehicle state at time of next laser scan
@@ -129,34 +135,57 @@ public class VelodyneLoader {
 
     public static void main(String[] args) throws IOException {
         String vehFile = "/Users/pkv/Desktop/velodyne/VehicleState.csv";
-        String veloFile = "/Users/pkv/Desktop/velodyne/velodyne_1190939875_091112.txt";
+        String veloDir = "/Users/pkv/Desktop/velodyne";
+
+        File dir = new File(veloDir);
+        FilenameFilter filter = new FilenameFilter() {
+            public boolean accept(File dir, String name) {
+                return name.startsWith("velodyne");
+            }
+        };
+        String[] veloFiles = dir.list(filter);
 
         VelodyneLoader vl = new VelodyneLoader();
-        vl.load(vehFile, veloFile);
-
         OccupancyMap omap = new OccupancyMap(400, 400, 400,
                 //4473923.999042602, 589438.581795943, -201.3608791894574,
                 4473723.999042602, 589238.581795943, -241.3608791894574,
                 1);
 
-        for (int i = 1; i < 100000; i++) {
+        for (String veloFile : veloFiles) {
+            System.out.println(veloFile);
+            vl.load(vehFile, dir.getPath() + File.separator + veloFile);
+            loadData(omap, vl);
+        }
+       
+        omap.save("/Users/pkv/Desktop/velodyne/out.df3");
+    }
+
+    public static void loadData(OccupancyMap omap, VelodyneLoader vl) {
+        Ray r = new Ray();
+
+        for (int i = 1; i < 10000000; i++) {
             // Get next scan
-            Ray r = vl.step();
-            if (r == null) return;
+            for (int j = 1; j < 100; j++) {
+                r = vl.step();
+                if (r == null) return;
+            }
 
             // Add scan to occupancy grid
-            if (r.ray[0] == 0) continue;
-            if (r.ray[1] == 0) continue;
-            if (r.ray[2] == 0) continue;
+            if (r.ray[0] == 0) {
+                continue;
+            }
+            if (r.ray[1] == 0) {
+                continue;
+            }
+            if (r.ray[2] == 0) {
+                continue;
+            }
             omap.addScan(r.pos, r.ray);
 
             // On certain intervals output iteration number
-            if (i % 10000 == 0)
+            if (i % 10000 == 0) {
                 System.out.println("i = " + i);
-
-            // On certain interval, output result
-            if (i % 99999 == 0)
-                omap.save("/Users/pkv/Desktop/velodyne/out.df3");
+            }
         }
     }
 }
