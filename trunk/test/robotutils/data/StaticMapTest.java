@@ -25,56 +25,66 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package robotutils.filters.occupancy;
+package robotutils.data;
 
-import java.util.Arrays;
+import robotutils.data.StaticMap;
+import java.util.Random;
+import org.junit.Test;
+import static org.junit.Assert.*;
 
 /**
- * This is a map implementation that just uses a large internal array.
+ *
  * @author Prasanna Velagapudi <pkv@cs.cmu.edu>
  */
-public class StaticMap implements GridMap {
-    byte[] map;
-    int[] dims;
-    int[] cumDims;
+public class StaticMapTest {
+    
+    /**
+     * Test of resize method, of class StaticMap.
+     */
+    @Test
+    public void testResize() {
+        System.out.println("resize");
+        int[] dims = {100, 400, 200};
+        StaticMap instance = new StaticMap();
+        instance.resize(dims);
 
-    public void resize(int[] dims) {
-        this.dims = Arrays.copyOf(dims, dims.length);
-        this.cumDims = new int[dims.length];
+        assertEquals(3, instance.dims.length, 3);
 
-        this.cumDims[0] = 1;
-        for (int i = 1; i < dims.length; i++) {
-            this.cumDims[i] = cumDims[i-1] * dims[i-1];
+        assertEquals(100, instance.dims[0]);
+        assertEquals(400, instance.dims[1]);
+        assertEquals(200, instance.dims[2]);
+
+        assertEquals(3, instance.cumDims.length);
+
+        assertEquals(1, instance.cumDims[0]);
+        assertEquals(100, instance.cumDims[1]);
+        assertEquals(100*400, instance.cumDims[2]);
+
+        assertEquals(100*400*200, instance.map.length);
+    }
+
+    /**
+     * Test of get and set methods, of class StaticMap.
+     */
+    @Test
+    public void testGetAndSet() {
+        System.out.println("get/set");
+        StaticMap instance = new StaticMap();
+
+        int[] size = {100, 200, 300};
+        instance.resize(size);
+
+        Random rnd = new Random();
+        int[] idx = new int[3];
+
+        for (int i = 0; i < 1000; i++) {
+            byte b = (byte)rnd.nextInt();
+            idx[0] = rnd.nextInt(size[0]);
+            idx[1] = rnd.nextInt(size[1]);
+            idx[2] = rnd.nextInt(size[2]);
+
+            instance.set(b, idx);
+            assertEquals(instance.get(idx), b);
         }
-
-        this.map = new byte[cumDims[dims.length - 1] * dims[dims.length - 1]];
-    }
-
-    int index(int[] idx) {
-        int linIdx = 0;
-
-        for (int i = 0; i < dims.length; i++) {
-            if (idx[i] < 0) return -1;
-            if (idx[i] >= dims[i]) return -1;
-
-            linIdx += cumDims[i]*idx[i];
-        }
-
-        return linIdx;
-    }
-
-    public byte get(int[] idx) {
-        int i = index(idx);
-        return (i < 0) ? 0 : map[i];
-    }
-
-    public void set(int[] idx, byte val) {
-        int i = index(idx);
-        if (i < 0) return;
-        map[i] = val;
-    }
-
-    public int size(int dim) {
-        return dims[dim];
     }
 }
