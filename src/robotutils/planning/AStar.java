@@ -25,16 +25,12 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package robotutils.filters.occupancy;
+package robotutils.planning;
 
 /**
- * This interface describes an abstract interface to a 3D grid-based map.
+ *
  * @author Prasanna Velagapudi <pkv@cs.cmu.edu>
  */
-public interface GridMap {
-    public void resize(int[] dims);
-    public int size(int dim);
+public class AStar {
     
-    public byte get(int[] idx);
-    public void set(int[] idx, byte val);
 }

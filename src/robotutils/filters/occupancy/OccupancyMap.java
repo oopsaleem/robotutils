@@ -27,6 +27,8 @@
 
 package robotutils.filters.occupancy;
 
+import robotutils.data.StaticMap;
+import robotutils.data.GridMap;
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
 import java.io.FileOutputStream;
@@ -60,7 +62,7 @@ public class OccupancyMap {
 
         //System.out.println("Point at " + Arrays.toString(pt) + ", " + map.get(pt));
 
-        map.set(pt, (byte)255);
+        map.set((byte)255, pt);
     }
 
     public void save(String filename) {

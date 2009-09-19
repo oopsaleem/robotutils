@@ -25,65 +25,16 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package robotutils.filters.occupancy;
-
-import java.util.Random;
-import org.junit.Test;
-import static org.junit.Assert.*;
+package robotutils.data;
 
 /**
- *
+ * This interface describes an abstract interface to an N-D grid-based map.
  * @author Prasanna Velagapudi <pkv@cs.cmu.edu>
  */
-public class StaticMapTest {
+public interface GridMap {
+    public void resize(int[] dims);
+    public int size(int dim);
     
-    /**
-     * Test of resize method, of class StaticMap.
-     */
-    @Test
-    public void testResize() {
-        System.out.println("resize");
-        int[] dims = {100, 400, 200};
-        StaticMap instance = new StaticMap();
-        instance.resize(dims);
-
-        assertEquals(3, instance.dims.length, 3);
-
-        assertEquals(100, instance.dims[0]);
-        assertEquals(400, instance.dims[1]);
-        assertEquals(200, instance.dims[2]);
-
-        assertEquals(3, instance.cumDims.length);
-
-        assertEquals(1, instance.cumDims[0]);
-        assertEquals(100, instance.cumDims[1]);
-        assertEquals(100*400, instance.cumDims[2]);
-
-        assertEquals(100*400*200, instance.map.length);
-    }
-
-    /**
-     * Test of get and set methods, of class StaticMap.
-     */
-    @Test
-    public void testGetAndSet() {
-        System.out.println("get/set");
-        StaticMap instance = new StaticMap();
-
-        int[] size = {100, 200, 300};
-        instance.resize(size);
-
-        Random rnd = new Random();
-        int[] idx = new int[3];
-
-        for (int i = 0; i < 1000; i++) {
-            byte b = (byte)rnd.nextInt();
-            idx[0] = rnd.nextInt(size[0]);
-            idx[1] = rnd.nextInt(size[1]);
-            idx[2] = rnd.nextInt(size[2]);
-
-            instance.set(idx, b);
-            assertEquals(instance.get(idx), b);
-        }
-    }
+    public byte get(int... idx);
+    public void set(byte val, int... idx);
 }
