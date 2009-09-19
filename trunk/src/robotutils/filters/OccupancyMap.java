@@ -25,7 +25,7 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package robotutils.filters.occupancy;
+package robotutils.filters;
 
 import robotutils.data.StaticMap;
 import robotutils.data.GridMap;

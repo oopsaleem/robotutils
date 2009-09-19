@@ -37,7 +37,7 @@ import java.util.Arrays;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 import robotutils.Pose3D;
-import robotutils.filters.occupancy.OccupancyMap;
+import robotutils.filters.OccupancyMap;
 
 /**
  * Contains a script to load velodyne data from some random format.
