@@ -31,6 +31,25 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+class Condition {
+    static int ADVANCED;
+    static int TRAPPED;
+    static int REACHED;
+}
+
+abstract class StateSampler<T0, T1> {
+
+    static class StateCommandPair<T0, T1> {
+        T0 state;
+        T1 action;
+        public StateCommandPair() {
+        }
+    }
+
+    public abstract StateCommandPair extend(T0 a, T0 b);
+    public abstract T0 random();
+}
+
 /**
  *
  * @author Prasanna Velagapudi <pkv@cs.cmu.edu>

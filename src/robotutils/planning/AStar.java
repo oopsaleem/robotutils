@@ -32,5 +32,9 @@ package robotutils.planning;
  * @author Prasanna Velagapudi <pkv@cs.cmu.edu>
  */
 public class AStar {
-    
+    DistanceMetric heuristic;
+
+    public AStar(DistanceMetric h) {
+        heuristic = h;
+    }
 }
