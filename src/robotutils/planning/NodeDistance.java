@@ -31,6 +31,6 @@ package robotutils.planning;
  *
  * @author Prasanna Velagapudi <pkv@cs.cmu.edu>
  */
-public interface DistanceMetric<T> {
+public interface NodeDistance<T> {
     public double distance(T a, T b);
 }
