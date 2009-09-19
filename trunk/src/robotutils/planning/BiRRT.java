@@ -71,7 +71,7 @@ public class BiRRT<State, Action> {
         protected final int parent;
     }
 
-    DistanceMetric<State> metric;
+    NodeDistance<State> metric;
     StateSampler<State, Action> sampler;
 
     protected int getNearestNeighbor(List<Node> t, State x) {
