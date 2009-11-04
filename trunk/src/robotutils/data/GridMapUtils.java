@@ -27,61 +27,48 @@
 
 package robotutils.data;
 
-import java.util.Arrays;
+import java.awt.image.BufferedImage;
+import java.awt.image.WritableRaster;
 
 /**
- * This is a map implementation that just uses a large internal array.
+ * Helper class that converts GridMaps into a variety of useful formats.
  * @author Prasanna Velagapudi <pkv@cs.cmu.edu>
  */
-public class StaticMap implements GridMap {
-    byte[] map;
-    int[] dims;
-    int[] cumDims;
+public class GridMapUtils {
 
-    public void resize(int... dims) {
-        this.dims = Arrays.copyOf(dims, dims.length);
-        this.cumDims = new int[dims.length];
+    public static BufferedImage toImage(StaticMap map) {
+        if (map.dims() != 2)
+            throw new IllegalArgumentException("Cannot display " + map.dims() + "-D map as image.");
 
-        this.cumDims[0] = 1;
-        for (int i = 1; i < dims.length; i++) {
-            this.cumDims[i] = cumDims[i-1] * dims[i-1];
+        BufferedImage image = new BufferedImage(map.size(0), map.size(1), BufferedImage.TYPE_BYTE_GRAY);
+        image.getRaster().setDataElements(0, 0, map.size(0), map.size(1), map.getData());
+
+        return image;
+    }
+
+    public static BufferedImage toImage(GridMap map) {
+        if (map.dims() != 2)
+            throw new IllegalArgumentException("Cannot display " + map.dims() + "-D map as image.");
+
+        BufferedImage image = new BufferedImage(map.size(0), map.size(1), BufferedImage.TYPE_BYTE_GRAY);
+        fillImage(image, map);
+
+        return image;
+    }
+
+    public static void fillImage(BufferedImage image, GridMap map) {
+        int height = Math.min(image.getHeight(), map.size(0));
+        int width = Math.min(image.getWidth(), map.size(1));
+        
+        fillImage(image, map, 0, 0, width, height);
+    }
+
+    public static void fillImage(BufferedImage image, GridMap map, int x, int y, int width, int height) {
+        WritableRaster wr = image.getRaster();
+        for (int i = y; i < height; i++) {
+            for (int j = x; j < width; j++) {
+                wr.setSample(i, j, 0, map.get(i, j));
+            }
         }
-
-        this.map = new byte[cumDims[dims.length - 1] * dims[dims.length - 1]];
-    }
-
-    protected int index(int[] idx) {
-        int linIdx = 0;
-
-        for (int i = 0; i < dims.length; i++) {
-            if (idx[i] < 0) return -1;
-            if (idx[i] >= dims[i]) return -1;
-
-            linIdx += cumDims[i]*idx[i];
-        }
-
-        return linIdx;
-    }
-
-    public byte get(int... idx) {
-        int i = index(idx);
-        return (i >= 0) ? map[i] : 0;
-    }
-
-    public void set(byte val, int... idx) {
-        int i = index(idx);
-        if (i >= 0) map[i] = val;
-    }
-
-    public int size(int dim) {
-        return dims[dim];
-    }
-
-    public int dims() {
-        return dims.length;
-    }
-
-    public byte[] getData() {
-        return map;
     }
 }
