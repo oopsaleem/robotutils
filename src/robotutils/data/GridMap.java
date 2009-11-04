@@ -32,8 +32,9 @@ package robotutils.data;
  * @author Prasanna Velagapudi <pkv@cs.cmu.edu>
  */
 public interface GridMap {
-    public void resize(int[] dims);
+    public void resize(int... dims);
     public int size(int dim);
+    public int dims();
     
     public byte get(int... idx);
     public void set(byte val, int... idx);
