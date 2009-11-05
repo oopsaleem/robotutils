@@ -28,7 +28,7 @@
 package robotutils.data;
 
 /**
- * This interface describes an abstract interface to an N-D grid-based map.
+ * This interface describes an abstract N-D grid-based map.
  * @author Prasanna Velagapudi <pkv@cs.cmu.edu>
  */
 public interface GridMap {
