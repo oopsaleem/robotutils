@@ -1,7 +1,7 @@
 /*
  *  Copyright (c) 2009, Prasanna Velagapudi <pkv@cs.cmu.edu>
  *  All rights reserved.
- *
+ * 
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
  *      * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
  *      * Neither the name of the project nor the
  *        names of its contributors may be used to endorse or promote products
  *        derived from this software without specific prior written permission.
- *
+ * 
  *  THIS SOFTWARE IS PROVIDED BY THE PROJECT AND CONTRIBUTORS ''AS IS'' AND ANY
  *  EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  *  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -25,50 +25,31 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package robotutils.data;
+package robotutils.samples;
 
-import java.awt.image.BufferedImage;
-import java.awt.image.WritableRaster;
+import javax.swing.JFrame;
+import robotutils.data.GridMapGenerator;
+import robotutils.data.GridMapUtils;
+import robotutils.data.StaticMap;
+import robotutils.gui.MapPanel;
 
 /**
- * Helper class that converts GridMaps into a variety of useful formats.
+ * Creates a randomized 2D map and solves a path between two random locations
+ * using A-Star search.
  * @author Prasanna Velagapudi <pkv@cs.cmu.edu>
  */
-public class GridMapUtils {
+public class AStarPlanning {
+    public static void main(String args[]) {
+        StaticMap sm = GridMapGenerator.createRandomMazeMap2D(800, 600);
+        
+        MapPanel mp = new MapPanel();
+        mp.setMapImage(GridMapUtils.toImage(sm));
 
-    public static BufferedImage toImage(StaticMap map) {
-        if (map.dims() != 2)
-            throw new IllegalArgumentException("Cannot display " + map.dims() + "-D map as image.");
+        JFrame jf = new JFrame("Map");
+        jf.setBounds(10, 10, 810, 610);
+        jf.getContentPane().add(mp);
+        jf.setVisible(true);
 
-        BufferedImage image = new BufferedImage(map.size(0), map.size(1), BufferedImage.TYPE_BYTE_GRAY);
-        image.getRaster().setDataElements(0, 0, map.size(0), map.size(1), map.getData());
-
-        return image;
-    }
-
-    public static BufferedImage toImage(GridMap map) {
-        if (map.dims() != 2)
-            throw new IllegalArgumentException("Cannot display " + map.dims() + "-D map as image.");
-
-        BufferedImage image = new BufferedImage(map.size(0), map.size(1), BufferedImage.TYPE_BYTE_GRAY);
-        fillImage(image, map);
-
-        return image;
-    }
-
-    public static void fillImage(BufferedImage image, GridMap map) {
-        int height = Math.min(image.getHeight(), map.size(0));
-        int width = Math.min(image.getWidth(), map.size(1));
-
-        fillImage(image, map, 0, 0, width, height);
-    }
-
-    public static void fillImage(BufferedImage image, GridMap map, int x, int y, int width, int height) {
-        WritableRaster wr = image.getRaster();
-        for (int i = y; i < height; i++) {
-            for (int j = x; j < width; j++) {
-                wr.setSample(i, j, 0, map.get(i, j));
-            }
-        }
+        //TODO: finish this
     }
 }
