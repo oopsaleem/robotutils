@@ -36,6 +36,10 @@ public class Gaussian1D {
     private double M = Double.NaN;
     private double S = Double.NaN;
 
+    public Gaussian1D(double... samples) {
+        update(samples);
+    }
+
     public void update(double x) {
         n++;
         if (n == 1) {
@@ -53,8 +57,8 @@ public class Gaussian1D {
         }
     }
 
-    public void update(double... xList) {
-        for (double x : xList) {
+    public void update(double... samples) {
+        for (double x : samples) {
             update(x);
         }
     }
