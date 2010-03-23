@@ -28,9 +28,11 @@
 package robotutils.planning;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Vector;
 import org.jgrapht.graph.UnmodifiableGraph;
@@ -51,6 +53,23 @@ public class AStar {
         double f = Double.POSITIVE_INFINITY;
     }
 
+    static final class ScoreComparator<E> implements Comparator<E> {
+        Map<E, ? extends Score> _scores;
+
+        public ScoreComparator(Map<E, ? extends Score> scores) {
+            _scores = scores;
+        }
+
+        public int compare(E o1, E o2) {
+            Score s1 = _scores.get(o1);
+            Score s2 = _scores.get(o2);
+
+            return (int)(s2.f - s1.f);
+        }
+    }
+
+    public static final int INITIAL_CAPACITY = 1024;
+
     /**
      * Adapted from wikipedia entry
      */
@@ -59,14 +78,10 @@ public class AStar {
             EdgeDistance<E> metric,
             V start, V goal) {
 
-        if (true) {
-            throw new UnsupportedOperationException("NOT CORRECTLY IMPLEMENTED: PRIORITY QUEUE IS BROKEN");
-        }
-        
         // Create open and closed sets, and a map to store node meta-info
+        HashMap<V, Score<E>> scores = new HashMap<V, Score<E>>(INITIAL_CAPACITY);
         Vector<V> closed = new Vector<V>();
-        PriorityQueue<V> open = new PriorityQueue<V>();
-        HashMap<V, Score<E>> scores = new HashMap<V, Score<E>>();
+        PriorityQueue<V> open = new PriorityQueue<V>(INITIAL_CAPACITY, new ScoreComparator<V>(scores));
 
         // Insert the start node into our search tree
         Score<E> startScore = new Score<E>();
@@ -106,23 +121,28 @@ public class AStar {
 
                 // Get the current estimate of the distance to goal
                 double tentativeGScore = scores.get(x).g + metric.distance(edge);
-                boolean tentativeIsBetter = false;
+                boolean tentativeIsBetter;
 
                 // If the node is unopened, or we have a better score, update
                 if (!open.contains(y)) {
-                    open.add(y);
                     tentativeIsBetter = true;
                 } else if (tentativeGScore < scores.get(y).g) {
                     tentativeIsBetter = true;
+                } else {
+                    tentativeIsBetter = false;
                 }
 
                 // Update the node with the new score
                 if (tentativeIsBetter == true) {
+                    open.remove(y);
+
                     Score yScore = scores.get(y);
                     yScore.route = edge;
                     yScore.g = tentativeGScore;
                     yScore.h = heuristic.distance(y, goal);
                     yScore.f = yScore.g + yScore.h;
+                    
+                    open.add(y);
                 }
             }
         }
