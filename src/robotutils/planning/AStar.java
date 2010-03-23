@@ -36,6 +36,10 @@ import java.util.Vector;
 import org.jgrapht.graph.UnmodifiableGraph;
 
 /**
+ * This class implements the basic A* graph search algorithm.  A* is an optimal
+ * best-first search strategy.
+ *
+ * Source: http://en.wikipedia.org/wiki/A*_search_algorithm
  *
  * @author Prasanna Velagapudi <pkv@cs.cmu.edu>
  */
