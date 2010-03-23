@@ -58,6 +58,10 @@ public class AStar {
             NodeDistance<V> heuristic,
             EdgeDistance<E> metric,
             V start, V goal) {
+
+        if (true) {
+            throw new UnsupportedOperationException("NOT CORRECTLY IMPLEMENTED: PRIORITY QUEUE IS BROKEN");
+        }
         
         // Create open and closed sets, and a map to store node meta-info
         Vector<V> closed = new Vector<V>();
