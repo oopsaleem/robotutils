@@ -58,6 +58,7 @@ public class AStar {
             NodeDistance<V> heuristic,
             EdgeDistance<E> metric,
             V start, V goal) {
+        
         // Create open and closed sets, and a map to store node meta-info
         Vector<V> closed = new Vector<V>();
         PriorityQueue<V> open = new PriorityQueue<V>();
