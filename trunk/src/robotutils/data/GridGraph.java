@@ -27,6 +27,7 @@ package robotutils.data;
 import java.util.AbstractSet;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -231,7 +232,25 @@ public class GridGraph extends AbstractGraph<int[], int[][]> {
     }
 
     public Set<int[][]> edgesOf(int[] v) {
-        throw new UnsupportedOperationException("Not supported yet.");
+
+        int numNbrs = 2 * _map.dims();
+        HashSet edges = new HashSet(numNbrs);
+
+        for (int i = 0; i < numNbrs; i++) {
+            if (v[i] < _map.size(i) - 1) {
+                int[] v1 = Arrays.copyOf(v, _map.dims());
+                v1[i] = v[i] + 1;
+                edges.add(new int[][] {v, v1});
+            }
+
+            if (v[i] > 0) {
+                int[] v1 = Arrays.copyOf(v, _map.dims());
+                v1[i] = v[i] - 1;
+                edges.add(new int[][] {v, v1});
+            }
+        }
+
+        return edges;
     }
 
     public int[][] removeEdge(int[] v, int[] v1) {
