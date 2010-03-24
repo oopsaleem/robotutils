@@ -24,6 +24,9 @@
 
 package robotutils.planning;
 
+import java.util.Collection;
+import org.jgrapht.graph.UnmodifiableGraph;
+
 /**
  * This class implements the optimized D*-lite algorithm exactly as described
  * in [Koenig 2002]. D*-lite is an incremental variant of the A* search
@@ -37,10 +40,56 @@ package robotutils.planning;
  *
  * @author Prasanna Velagapudi <psigen@gmail.com>
  */
-public class DStarLite {
+public class DStarLite<V, E> {
 
-    public DStarLite() {
+    class Key implements Comparable<Key> {
+        final double a;
+        final double b;
 
+        public Key(double a, double b) {
+            this.a = a;
+            this.b = b;
+        }
+
+        public int compareTo(Key that) {
+            if (this.a < that.a) {
+                return -1;
+            } else if (this.a > that.a) {
+                return 1;
+            } else {
+                if (this.b < that.b) {
+                    return -1;
+                } else if (this.b > that.b) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            }
+        }
+    }
+
+    UnmodifiableGraph<V, E> _graph;
+    NodeDistance<V> _h;
+    EdgeDistance<E> _c;
+
+    V _sStart;
+    V _sGoal;
+
+    public DStarLite(UnmodifiableGraph<V,E> graph,
+            NodeDistance<V> heuristic,
+            EdgeDistance<E> metric,
+            V start, V goal) {
+
+            _graph = graph;
+            _h = heuristic;
+            _c = metric;
+
+            _sStart = start;
+            _sGoal = goal;
+    }
+
+    public void edgeChange(Collection<E> edges) {
+        
     }
 
     public void calculateKey() {
@@ -51,7 +100,7 @@ public class DStarLite {
 
     }
 
-    public void updateVertex() {
+    public void updateVertex(V u) {
 
     }
 
@@ -60,12 +109,12 @@ public class DStarLite {
     }
 
     public void plan() {
-        sLast = sStart;
+        V sLast = _sStart;
 
         initialize();
         computeShortestPath();
 
-        while (!sStart.equals(sGoal)) {
+        while (!_sStart.equals(_sGoal)) {
             // if (rhs(sStart) = inf) then there is no known path
 
             // sStart = argmin_s (c(start, s) + g(s));

@@ -27,11 +27,13 @@
 
 package robotutils.examples;
 
+import java.util.List;
 import javax.swing.JFrame;
 import robotutils.data.GridMapGenerator;
 import robotutils.data.GridMapUtils;
 import robotutils.data.StaticMap;
 import robotutils.gui.MapPanel;
+import robotutils.planning.AStar;
 
 /**
  * Creates a randomized 2D map and solves a path between two random locations
@@ -50,6 +52,6 @@ public class AStarPlanning {
         jf.getContentPane().add(mp);
         jf.setVisible(true);
 
-        //TODO: finish this
+        List<E> path = AStar.search(null, null, null, sm, jf);
     }
 }
