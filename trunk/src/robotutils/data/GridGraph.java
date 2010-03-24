@@ -128,14 +128,20 @@ public class GridGraph extends AbstractGraph<int[], int[][]> {
                 }
 
                 public void remove() {
-                    throw new UnsupportedOperationException("Not supported yet.");
+                    throw new UnsupportedOperationException("Not supported.");
                 }
             };
         }
 
         @Override
         public int size() {
-            throw new UnsupportedOperationException("Not supported yet.");
+            int size = 1;
+
+            for (int i = 0; i < _map.dims(); i++) {
+                size *= _map.size(i);
+            }
+
+            return size * (2 * _map.dims());
         }
 
     }
@@ -170,15 +176,15 @@ public class GridGraph extends AbstractGraph<int[], int[][]> {
     }
 
     public int[][] addEdge(int[] v, int[] v1) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        throw new UnsupportedOperationException("Not supported.");
     }
 
     public boolean addEdge(int[] v, int[] v1, int[][] e) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        throw new UnsupportedOperationException("Not supported.");
     }
 
     public boolean addVertex(int[] v) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        throw new UnsupportedOperationException("Not supported.");
     }
 
     public boolean containsEdge(int[][] e) {
@@ -229,15 +235,15 @@ public class GridGraph extends AbstractGraph<int[], int[][]> {
     }
 
     public int[][] removeEdge(int[] v, int[] v1) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        throw new UnsupportedOperationException("Not supported.");
     }
 
     public boolean removeEdge(int[][] e) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        throw new UnsupportedOperationException("Not supported.");
     }
 
     public boolean removeVertex(int[] v) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        throw new UnsupportedOperationException("Not supported.");
     }
 
     public Set<int[]> vertexSet() {
