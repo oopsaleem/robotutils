@@ -29,12 +29,17 @@ package robotutils.data;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
+import org.jgrapht.graph.UnmodifiableGraph;
 
 /**
  * Helper class that converts GridMaps into a variety of useful formats.
  * @author Prasanna Velagapudi <pkv@cs.cmu.edu>
  */
 public class GridMapUtils {
+
+    public static UnmodifiableGraph<int[], int[][]> toGraph(GridMap map) {
+        return new UnmodifiableGraph(new GridGraph(map));
+    }
 
     public static BufferedImage toImage(StaticMap map) {
         if (map.dims() != 2)
