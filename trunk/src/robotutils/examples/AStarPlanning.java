@@ -29,6 +29,7 @@ package robotutils.examples;
 
 import java.util.List;
 import javax.swing.JFrame;
+import org.jgrapht.graph.UnmodifiableGraph;
 import robotutils.data.GridMapGenerator;
 import robotutils.data.GridMapUtils;
 import robotutils.data.StaticMap;
@@ -52,6 +53,13 @@ public class AStarPlanning {
         jf.getContentPane().add(mp);
         jf.setVisible(true);
 
-        List<E> path = AStar.search(null, null, null, sm, jf);
+        int[] start = null;
+        int[] goal = null;
+
+        UnmodifiableGraph<int[], int[][]> graph = GridMapUtils.toGraph(sm);
+        List<int[][]> path = AStar.search(graph, 
+                new GridMapUtils.ManhattanDistance(),
+                new GridMapUtils.GraphDistance<int[][]>(graph),
+                start, goal);
     }
 }
