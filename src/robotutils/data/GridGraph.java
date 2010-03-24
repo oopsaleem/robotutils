@@ -24,8 +24,11 @@
 
 package robotutils.data;
 
-import java.util.ArrayList;
+import java.util.AbstractSet;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import org.jgrapht.EdgeFactory;
 import org.jgrapht.graph.AbstractGraph;
@@ -36,7 +39,106 @@ import org.jgrapht.graph.AbstractGraph;
  */
 public class GridGraph extends AbstractGraph<int[], int[][]> {
 
-    GridMap _map;
+    final GridMap _map;
+
+    public class VertexSet extends AbstractSet<int[]> {
+
+        @Override
+        public Iterator<int[]> iterator() {
+            return new Iterator() {
+                public int dims = _map.dims();
+                public int[] sizes = _map.sizes();
+                public int[] idx = new int[dims];
+                public boolean hasNext = true;
+
+
+                public boolean hasNext() {
+                    return hasNext;
+                }
+
+                public boolean inc() {
+                    for (int i = 0; i < dims; i++) {
+                        if (idx[i] < sizes[i] - 1) {
+                            idx[i]++;
+                            return true;
+                        } else {
+                            idx[i] = 0;
+                        }
+                    }
+
+                    return false;
+                }
+
+                public Object next() {
+                    hasNext = inc();
+
+                    if (hasNext) {
+                        return Arrays.copyOf(idx, idx.length);
+                    } else {
+                        throw new NoSuchElementException();
+                    }
+                }
+
+                public void remove() {
+                    throw new UnsupportedOperationException("Not supported.");
+                }
+            };
+        }
+
+        @Override
+        public int size() {
+            int size = 1;
+
+            for (int i = 0; i < _map.dims(); i++) {
+                size *= _map.size(i);
+            }
+
+            return size;
+        }
+
+    }
+
+    public class EdgeSet extends AbstractSet<int[][]> {
+
+        @Override
+        public Iterator<int[][]> iterator() {
+            return new Iterator<int[][]>() {
+
+                Iterator<int[]> vertexItr = vertexSet().iterator();
+                Iterator<int[][]> edgeItr = Collections.EMPTY_SET.iterator();
+
+                public boolean hasNext() {
+                    if (vertexItr.hasNext() || edgeItr.hasNext()) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+
+                public int[][] next() {
+                    if (!edgeItr.hasNext()) {
+                        if (vertexItr.hasNext()) {
+                            edgeItr = edgesOf(vertexItr.next()).iterator();
+                        } else {
+                            throw new NoSuchElementException();
+                        }
+                    }
+
+                    return edgeItr.next();
+                }
+
+                public void remove() {
+                    throw new UnsupportedOperationException("Not supported yet.");
+                }
+            };
+        }
+
+        @Override
+        public int size() {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+    }
 
     public GridGraph(GridMap map) {
         _map = map;
@@ -119,7 +221,7 @@ public class GridGraph extends AbstractGraph<int[], int[][]> {
     }
 
     public Set<int[][]> edgeSet() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return new EdgeSet();
     }
 
     public Set<int[][]> edgesOf(int[] v) {
@@ -139,7 +241,7 @@ public class GridGraph extends AbstractGraph<int[], int[][]> {
     }
 
     public Set<int[]> vertexSet() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return new VertexSet();
     }
 
     public int[] getEdgeSource(int[][] e) {
