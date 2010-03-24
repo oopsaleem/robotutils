@@ -77,6 +77,10 @@ public class StaticMap implements GridMap {
         return _sizes[dim];
     }
 
+    public int[] sizes() {
+        return Arrays.copyOf(_sizes, _sizes.length);
+    }
+
     public int dims() {
         return _sizes.length;
     }
