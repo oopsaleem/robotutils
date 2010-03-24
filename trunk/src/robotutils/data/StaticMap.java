@@ -34,30 +34,30 @@ import java.util.Arrays;
  * @author Prasanna Velagapudi <pkv@cs.cmu.edu>
  */
 public class StaticMap implements GridMap {
-    byte[] map;
-    int[] dims;
-    int[] cumDims;
+    byte[] _map;
+    int[] _sizes;
+    int[] _cumSizes;
 
-    public void resize(int... dims) {
-        this.dims = Arrays.copyOf(dims, dims.length);
-        this.cumDims = new int[dims.length];
+    public void resize(int... sizes) {
+        this._sizes = Arrays.copyOf(sizes, _sizes.length);
+        this._cumSizes = new int[_sizes.length];
 
-        this.cumDims[0] = 1;
-        for (int i = 1; i < dims.length; i++) {
-            this.cumDims[i] = cumDims[i-1] * dims[i-1];
+        this._cumSizes[0] = 1;
+        for (int i = 1; i < _sizes.length; i++) {
+            this._cumSizes[i] = _cumSizes[i-1] * _sizes[i-1];
         }
 
-        this.map = new byte[cumDims[dims.length - 1] * dims[dims.length - 1]];
+        this._map = new byte[_cumSizes[_sizes.length - 1] * _sizes[_sizes.length - 1]];
     }
 
     protected int index(int[] idx) {
         int linIdx = 0;
 
-        for (int i = 0; i < dims.length; i++) {
+        for (int i = 0; i < _sizes.length; i++) {
             if (idx[i] < 0) return -1;
-            if (idx[i] >= dims[i]) return -1;
+            if (idx[i] >= _sizes[i]) return -1;
 
-            linIdx += cumDims[i]*idx[i];
+            linIdx += _cumSizes[i]*idx[i];
         }
 
         return linIdx;
@@ -65,23 +65,23 @@ public class StaticMap implements GridMap {
 
     public byte get(int... idx) {
         int i = index(idx);
-        return (i >= 0) ? map[i] : 0;
+        return (i >= 0) ? _map[i] : 0;
     }
 
     public void set(byte val, int... idx) {
         int i = index(idx);
-        if (i >= 0) map[i] = val;
+        if (i >= 0) _map[i] = val;
     }
 
     public int size(int dim) {
-        return dims[dim];
+        return _sizes[dim];
     }
 
     public int dims() {
-        return dims.length;
+        return _sizes.length;
     }
 
     public byte[] getData() {
-        return map;
+        return _map;
     }
 }
