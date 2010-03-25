@@ -236,7 +236,7 @@ public class GridGraph extends AbstractGraph<int[], int[][]> {
         int numNbrs = 2 * _map.dims();
         HashSet edges = new HashSet(numNbrs);
 
-        for (int i = 0; i < numNbrs; i++) {
+        for (int i = 0; i < _map.dims(); i++) {
             if (v[i] < _map.size(i) - 1) {
                 int[] v1 = Arrays.copyOf(v, _map.dims());
                 v1[i] = v[i] + 1;

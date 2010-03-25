@@ -33,6 +33,7 @@ package robotutils.data;
  */
 public interface GridMap {
     public void resize(int... sizes);
+    public int length();
     public int size(int dim);
     public int[] sizes();
     public int dims();
