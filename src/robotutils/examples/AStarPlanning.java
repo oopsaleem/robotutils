@@ -29,12 +29,17 @@ package robotutils.examples;
 
 import java.util.List;
 import javax.swing.JFrame;
+import org.jgrapht.graph.DefaultEdge;
+import org.jgrapht.graph.DefaultWeightedEdge;
 import org.jgrapht.graph.UnmodifiableGraph;
+import robotutils.data.Coordinate;
 import robotutils.data.GridMapGenerator;
 import robotutils.data.GridMapUtils;
+import robotutils.data.IntCoord;
 import robotutils.data.StaticMap;
 import robotutils.gui.MapPanel;
 import robotutils.planning.AStar;
+import robotutils.planning.EdgeDistance;
 
 /**
  * Creates a randomized 2D map and solves a path between two random locations
@@ -43,7 +48,7 @@ import robotutils.planning.AStar;
  */
 public class AStarPlanning {
     public static void main(String args[]) {
-        StaticMap sm = GridMapGenerator.createRandomMazeMap2D(800, 600);
+        StaticMap sm = GridMapGenerator.createRandomMazeMap2D(100, 100);
         
         MapPanel mp = new MapPanel();
         mp.setMapImage(GridMapUtils.toImage(sm));
@@ -53,13 +58,26 @@ public class AStarPlanning {
         jf.getContentPane().add(mp);
         jf.setVisible(true);
 
-        int[] start = null;
-        int[] goal = null;
+        Coordinate start = new IntCoord(0, 0);
+        Coordinate goal = new IntCoord(50, 30);
+        
+        UnmodifiableGraph<Coordinate, DefaultWeightedEdge> graph = GridMapUtils.toGraph(sm);
+        System.out.println("Made Graph");
 
-        UnmodifiableGraph<int[], int[][]> graph = GridMapUtils.toGraph(sm);
-        List<int[][]> path = AStar.search(graph, 
+        List<DefaultWeightedEdge> path = AStar.search(graph,
                 new GridMapUtils.ManhattanDistance(),
-                new GridMapUtils.GraphDistance<int[][]>(graph),
+                new GridMapUtils.GraphDistance<DefaultWeightedEdge>(graph),
                 start, goal);
+        System.out.println("Done: " + path);
+
+        EdgeDistance d = new GridMapUtils.GraphDistance<DefaultWeightedEdge>(graph);
+        for (DefaultWeightedEdge e : path) {
+            Coordinate a = graph.getEdgeSource(e);
+            Coordinate b = graph.getEdgeTarget(e);
+
+            System.out.println("D: " + d.distance(e));
+
+            mp.getGraphics().drawLine((int)a.get(0), (int)a.get(1), (int)b.get(0), (int)b.get(1));
+        }
     }
 }

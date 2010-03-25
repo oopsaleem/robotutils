@@ -34,7 +34,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Set;
 import java.util.Vector;
+import org.jgrapht.DirectedGraph;
 import org.jgrapht.graph.UnmodifiableGraph;
 
 /**
@@ -78,6 +80,14 @@ public class AStar {
             EdgeDistance<E> metric,
             V start, V goal) {
 
+        // Can't deal with empty start and goal
+        if (start == null || goal == null) {
+            return Collections.emptyList();
+        }
+
+        // Determine if this graph is directed or not
+        boolean isDirected = (graph instanceof DirectedGraph);
+
         // Create open and closed sets, and a map to store node meta-info
         HashMap<V, Score<E>> scores = new HashMap<V, Score<E>>(INITIAL_CAPACITY);
         Vector<V> closed = new Vector<V>();
@@ -89,9 +99,11 @@ public class AStar {
         startScore.h = heuristic.distance(start, goal);
         startScore.f = startScore.h;
         scores.put(start, startScore);
+        open.add(start);
 
         // Search until we find a result or run out of nodes to explore
         while (!open.isEmpty()) {
+
             // Get the node at the top of the priority queue
             V x = open.poll();
 
@@ -99,7 +111,7 @@ public class AStar {
             if (x.equals(goal)) {
                 LinkedList<E> path = new LinkedList<E>();
                 V curr = goal;
-                while (curr != start) {
+                while (!curr.equals(start)) {
                     Score<E> currScore = scores.get(curr);
                     path.addFirst(currScore.route);
                     curr = graph.getEdgeSource(currScore.route);
@@ -110,14 +122,18 @@ public class AStar {
             // The node is now closed -- no more searching it!
             closed.add(x);
 
+            // Get this node's neighbors
+            Set<E> neighbors = (isDirected) ? graph.outgoingEdgesOf(x) : graph.edgesOf(x);
+
             // Search each of this node's neighbors
-            for (E edge : graph.outgoingEdgesOf(x)) {
+            for (E edge : neighbors) {
+
                 // Find the neighbor and make sure it has metadata
                 V y = graph.getEdgeTarget(edge);
                 if (!scores.containsKey(y)) scores.put(y, new Score());
 
                 // If the neighbor was already searched, ignore it
-                if (closed.contains(x)) continue;
+                if (closed.contains(y)) continue;
 
                 // Get the current estimate of the distance to goal
                 double tentativeGScore = scores.get(x).g + metric.distance(edge);
@@ -133,7 +149,7 @@ public class AStar {
                 }
 
                 // Update the node with the new score
-                if (tentativeIsBetter == true) {
+                if (tentativeIsBetter) {
                     open.remove(y);
 
                     Score yScore = scores.get(y);

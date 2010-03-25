@@ -37,17 +37,19 @@ public class StaticMap implements GridMap {
     byte[] _map;
     int[] _sizes;
     int[] _cumSizes;
+    int _length;
 
     public void resize(int... sizes) {
-        this._sizes = Arrays.copyOf(sizes, _sizes.length);
-        this._cumSizes = new int[_sizes.length];
+        _sizes = Arrays.copyOf(sizes, sizes.length);
+        _cumSizes = new int[_sizes.length];
 
-        this._cumSizes[0] = 1;
+        _cumSizes[0] = 1;
         for (int i = 1; i < _sizes.length; i++) {
-            this._cumSizes[i] = _cumSizes[i-1] * _sizes[i-1];
+            _cumSizes[i] = _cumSizes[i-1] * _sizes[i-1];
         }
 
-        this._map = new byte[_cumSizes[_sizes.length - 1] * _sizes[_sizes.length - 1]];
+        _length = _cumSizes[_sizes.length - 1] * _sizes[_sizes.length - 1];
+        _map = new byte[_length];
     }
 
     protected int index(int[] idx) {
@@ -71,6 +73,10 @@ public class StaticMap implements GridMap {
     public void set(byte val, int... idx) {
         int i = index(idx);
         if (i >= 0) _map[i] = val;
+    }
+
+    public int length() {
+        return _length;
     }
 
     public int size(int dim) {

@@ -29,7 +29,10 @@ package robotutils.data;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
+import java.util.Arrays;
+import org.jgrapht.graph.DefaultWeightedEdge;
 import org.jgrapht.graph.GraphDelegator;
+import org.jgrapht.graph.SimpleWeightedGraph;
 import org.jgrapht.graph.UnmodifiableGraph;
 import robotutils.planning.EdgeDistance;
 import robotutils.planning.NodeDistance;
@@ -40,13 +43,13 @@ import robotutils.planning.NodeDistance;
  */
 public class GridMapUtils {
 
-    public static class ManhattanDistance implements NodeDistance<int[]> {
+    public static class ManhattanDistance implements NodeDistance<Coordinate> {
 
-        public double distance(int[] a, int[] b) {
+        public double distance(Coordinate a, Coordinate b) {
             double dist = 0.0;
 
-            for (int i = 0; i < a.length; i++) {
-                dist += (double)Math.abs(b[i] - a[i]);
+            for (int i = 0; i < a.dims(); i++) {
+                dist += Math.abs(b.get(i) - a.get(i));
             }
 
             return dist;
@@ -68,8 +71,62 @@ public class GridMapUtils {
 
     }
 
-    public static UnmodifiableGraph<int[], int[][]> toGraph(GridMap map) {
-        return new UnmodifiableGraph(new GridGraph(map));
+    public static class ConstantDistance<E> implements EdgeDistance<E> {
+
+        public double distance(E a) {
+            return 1.0;
+        }
+
+    }
+
+    public static UnmodifiableGraph<Coordinate, DefaultWeightedEdge> toGraph(GridMap map) {
+        //return new UnmodifiableGraph(new GridGraph(map));
+
+        SimpleWeightedGraph<Coordinate, DefaultWeightedEdge> graph =
+                new SimpleWeightedGraph<Coordinate, DefaultWeightedEdge>(DefaultWeightedEdge.class);
+        
+        int dims = map.dims();
+        int length = map.length();
+        int[] sizes = map.sizes();
+        int[] idx = new int[dims];
+
+        // Add every vertex
+        for (int v = 0; v < length; v++) {
+            graph.addVertex(new IntCoord(idx));
+
+            for (int i = 0; i < dims; i++) {
+                if (idx[i] < sizes[i] - 1) {
+                    idx[i]++;
+                    break;
+                } else {
+                    idx[i] = 0;
+                }
+            }
+        }
+
+        // Add every edge
+        for (int v = 0; v < length; v++) {
+            for (int i = 0; i < dims; i++) {
+                if (idx[i] < sizes[i] - 1) {
+                    int[] idx1 = Arrays.copyOf(idx, idx.length);
+                    idx1[i]++;
+
+                    if (map.get(idx) >= 0 && map.get(idx1) >= 0) {
+                        DefaultWeightedEdge e = graph.addEdge(new IntCoord(idx), new IntCoord(idx1));
+                        graph.setEdgeWeight(e, ((double)map.get(idx) + (double)map.get(idx1))/2.0);
+                    }
+                }
+
+                if (idx[i] < sizes[i] - 1) {
+                    idx[i]++;
+                    break;
+                } else {
+                    idx[i] = 0;
+                }
+            }
+        }
+
+        return new UnmodifiableGraph<Coordinate, DefaultWeightedEdge>(graph);
     }
 
     public static BufferedImage toImage(StaticMap map) {
