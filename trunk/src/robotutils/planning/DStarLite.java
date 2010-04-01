@@ -52,7 +52,7 @@ public abstract class DStarLite<State> {
      * D* search.  Keys are compared according to a lexical ordering, e.g.
      * k &lt k' iff either k1 &lt k'1 or (k1 = k'1 and k2 &lt k'2).
      */
-    class Key implements Comparable<Key> {
+    final class Key implements Comparable<Key> {
         
         final double a;
         final double b;
@@ -85,7 +85,7 @@ public abstract class DStarLite<State> {
      * A simple wrapper to a HashMap that returns infinity if a match is not
      * found.  This cheaply implements the lookup behavior required by D*.
      */
-    class ValueMap extends HashMap<State, Double> {
+    final class ValueMap extends HashMap<State, Double> {
 
         @Override
         public Double get(Object key) {
@@ -106,7 +106,7 @@ public abstract class DStarLite<State> {
      * State and Key with the correct comparison and equals operators.  This
      * cheaply implements the lookup behavior expected by D*.
      */
-    class KeyQueue {
+    final class KeyQueue {
 
         private class StateKey {
             
@@ -173,23 +173,6 @@ public abstract class DStarLite<State> {
 
         public boolean contains(State s) {
             return _queue.contains(new StateKey(s, null));
-        }
-    }
-
-    /**
-     * A tuple storing a description of a change to an edge cost.
-     */
-    class EdgeChange {
-        final State a;
-        final State b;
-        final double cOld;
-        final double cNew;
-
-        public EdgeChange(State a, State b, double cOld, double cNew) {
-            this.a = a;
-            this.b = b;
-            this.cOld = cOld;
-            this.cNew = cNew;
         }
     }
 
