@@ -264,7 +264,7 @@ public abstract class DStarLite<State> {
         return new Key(k1, k2);
     }
 
-    public void updateVertex(State u) {
+    void updateVertex(State u) {
 
         if (_g.get(u) != _rhs.get(u) && _U.contains(u)) {
             _U.update(u, calculateKey(u));
@@ -275,7 +275,7 @@ public abstract class DStarLite<State> {
         }
     }
 
-    public void computeShortestPath() {
+    void computeShortestPath() {
 
         while (_U.topKey().compareTo(calculateKey(_start)) < 0 || _rhs.get(_start) > _g.get(_start)) {
 
@@ -331,7 +331,7 @@ public abstract class DStarLite<State> {
      * @param cOld the old cost value
      * @param cNew the new cost value
      */
-    public void flagChange(State u, State v, double cOld, double cNew) {
+    protected void flagChange(State u, State v, double cOld, double cNew) {
         
         if (cOld > cNew) {
             if (!u.equals(_goal)) {
@@ -360,7 +360,7 @@ public abstract class DStarLite<State> {
      * robot along path without needing to replan.
      * @param s the new start state
      */
-    public void updateStart(State s) {
+    protected void updateStart(State s) {
         State sLast = _start;
         _start = s;
 
@@ -377,7 +377,7 @@ public abstract class DStarLite<State> {
      * this will return an empty list.
      * @return a list of states from start to goal
      */
-    public List<State> plan() {
+    protected List<State> plan() {
 
         List<State> path = new ArrayList(100);        
         State s = _start;
