@@ -343,7 +343,7 @@ public abstract class DStarLite<State> {
      * robot along path without needing to replan.
      * @param s the new start state
      */
-    protected void updateStart(State s) {
+    public void updateStart(State s) {
         State sLast = _start;
         _start = s;
 
@@ -360,7 +360,7 @@ public abstract class DStarLite<State> {
      * this will return an empty list.
      * @return a list of states from start to goal
      */
-    protected List<State> plan() {
+    public List<State> plan() {
 
         List<State> path = new ArrayList(100);        
         State s = _start;
