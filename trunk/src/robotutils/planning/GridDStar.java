@@ -115,6 +115,20 @@ public class GridDStar extends DStarLite<GridDStar.Coords> {
 
             return Math.sqrt(dist);
         }
+
+        @Override
+        public String toString() {
+            String str = "(";
+            for (int i = 0; i < X.length; i++) {
+                str += X[i];
+                if (i < X.length - 1) {
+                    str += ",";
+                }
+            }
+            str += ")";
+
+            return str;
+        }
     }
 
     GridMap _map;
