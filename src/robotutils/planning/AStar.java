@@ -27,6 +27,7 @@
 
 package robotutils.planning;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -34,10 +35,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
-import java.util.Set;
 import java.util.Vector;
-import org.jgrapht.DirectedGraph;
-import org.jgrapht.graph.UnmodifiableGraph;
 
 /**
  * This class implements the basic A* graph search algorithm.  A* is an optimal
@@ -47,22 +45,38 @@ import org.jgrapht.graph.UnmodifiableGraph;
  *
  * @author Prasanna Velagapudi <pkv@cs.cmu.edu>
  */
-public class AStar {
-    static final class Score<E> {
-        E route = null;
+public abstract class AStar<State> {
+
+    /**
+     * Defines a suitably large initial capacity for internal data structures
+     * to avoid Java's heuristics reallocating up from scratch.
+     */
+    public static final int INITIAL_CAPACITY = 1024;
+
+    /**
+     * An internal storage class that contains scores associated with a state.
+     * @param <State> the class representing a state
+     */
+    static final class Score<State> {
+        State prev = null;
         double g = Double.POSITIVE_INFINITY;
         double h = Double.POSITIVE_INFINITY;
         double f = Double.POSITIVE_INFINITY;
     }
 
-    static final class ScoreComparator<E> implements Comparator<E> {
-        Map<E, ? extends Score> _scores;
+    /**
+     * An internal comparison class that the A* priority queue uses to order
+     * states from lowest to highest priority, for best-first exploration.
+     * @param <State> the class representing a state
+     */
+    static final class ScoreComparator<State> implements Comparator<State> {
+        Map<State, ? extends Score> _scores;
 
-        public ScoreComparator(Map<E, ? extends Score> scores) {
+        public ScoreComparator(Map<State, ? extends Score> scores) {
             _scores = scores;
         }
 
-        public int compare(E o1, E o2) {
+        public int compare(State o1, State o2) {
             Score s1 = _scores.get(o1);
             Score s2 = _scores.get(o2);
 
@@ -70,33 +84,63 @@ public class AStar {
         }
     }
 
-    public static final int INITIAL_CAPACITY = 1024;
+    /**
+     * Returns the set of successor states to the specified state.
+     * @param s the specified state.
+     * @return A set of successor states.
+     */
+    protected abstract Collection<State> succ(State s);
+
+    /**
+     * Returns the set of predecessor states to the specified state.
+     * @param s the specified state.
+     * @return A set of predecessor states.
+     */
+    protected abstract Collection<State> pred(State s);
+
+    /**
+     * An admissible heuristic function for the distance between two states.
+     * In actual use, the second vertex will always be the goal state.
+     *
+     * The heuristic must follow these rules:
+     * 1) h(a, a) = 0
+     * 2) h(a, b) &lt;= c(a, c) + h(c, b) (where a and c are neighbors)
+     *
+     * @param a some initial state
+     * @param b some final state
+     * @return the estimated distance between the states.
+     */
+    protected abstract double h(State a, State b);
+
+    /**
+     * An exact cost function for the distance between two <i>neighboring</i>
+     * states.  This function is undefined for non-neighboring states.  The
+     * neighbor connectivity is determined by the pred() and succ() functions.
+     * @param a some initial state
+     * @param b some final state
+     * @return the actual distance between the states.
+     */
+    protected abstract double c(State a, State b);
 
     /**
      * Adapted from wikipedia entry
      */
-    public static <V, E> List<E> search(UnmodifiableGraph<V,E> graph,
-            NodeDistance<V> heuristic,
-            EdgeDistance<E> metric,
-            V start, V goal) {
+    public List<State> search(State start, State goal) {
 
         // Can't deal with empty start and goal
         if (start == null || goal == null) {
             return Collections.emptyList();
         }
 
-        // Determine if this graph is directed or not
-        boolean isDirected = (graph instanceof DirectedGraph);
-
         // Create open and closed sets, and a map to store node meta-info
-        HashMap<V, Score<E>> scores = new HashMap<V, Score<E>>(INITIAL_CAPACITY);
-        Vector<V> closed = new Vector<V>();
-        PriorityQueue<V> open = new PriorityQueue<V>(INITIAL_CAPACITY, new ScoreComparator<V>(scores));
+        HashMap<State, Score<State>> scores = new HashMap(INITIAL_CAPACITY);
+        Vector<State> closed = new Vector();
+        PriorityQueue<State> open = new PriorityQueue(INITIAL_CAPACITY, new ScoreComparator(scores));
 
         // Insert the start node into our search tree
-        Score<E> startScore = new Score<E>();
+        Score<State> startScore = new Score();
         startScore.g = 0;
-        startScore.h = heuristic.distance(start, goal);
+        startScore.h = h(start, goal);
         startScore.f = startScore.h;
         scores.put(start, startScore);
         open.add(start);
@@ -105,16 +149,16 @@ public class AStar {
         while (!open.isEmpty()) {
 
             // Get the node at the top of the priority queue
-            V x = open.poll();
+            State x = open.poll();
 
             // If we reach the goal, traverse backwards to build a path
             if (x.equals(goal)) {
-                LinkedList<E> path = new LinkedList<E>();
-                V curr = goal;
+                LinkedList<State> path = new LinkedList();
+                State curr = goal;
                 while (!curr.equals(start)) {
-                    Score<E> currScore = scores.get(curr);
-                    path.addFirst(currScore.route);
-                    curr = graph.getEdgeSource(currScore.route);
+                    Score<State> currScore = scores.get(curr);
+                    path.addFirst(currScore.prev);
+                    curr = currScore.prev;
                 }
                 return path;
             }
@@ -122,21 +166,17 @@ public class AStar {
             // The node is now closed -- no more searching it!
             closed.add(x);
 
-            // Get this node's neighbors
-            Set<E> neighbors = (isDirected) ? graph.outgoingEdgesOf(x) : graph.edgesOf(x);
-
             // Search each of this node's neighbors
-            for (E edge : neighbors) {
+            for (State y : succ(x)) {
 
                 // Find the neighbor and make sure it has metadata
-                V y = graph.getEdgeTarget(edge);
                 if (!scores.containsKey(y)) scores.put(y, new Score());
 
                 // If the neighbor was already searched, ignore it
                 if (closed.contains(y)) continue;
 
                 // Get the current estimate of the distance to goal
-                double tentativeGScore = scores.get(x).g + metric.distance(edge);
+                double tentativeGScore = scores.get(x).g + c(x, y);
                 boolean tentativeIsBetter;
 
                 // If the node is unopened, or we have a better score, update
@@ -153,9 +193,9 @@ public class AStar {
                     open.remove(y);
 
                     Score yScore = scores.get(y);
-                    yScore.route = edge;
+                    yScore.prev = x;
                     yScore.g = tentativeGScore;
-                    yScore.h = heuristic.distance(y, goal);
+                    yScore.h = h(y, goal);
                     yScore.f = yScore.g + yScore.h;
                     
                     open.add(y);
