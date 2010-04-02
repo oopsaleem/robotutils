@@ -156,7 +156,7 @@ public class GridDStar extends DStarLite<GridDStar.Coords> {
             }
 
             int[] down = Arrays.copyOf(s.X, s.X.length);
-            down[i] += 1;
+            down[i] -= 1;
             if (_map.get(down) >= 0) {
                 nbrs.add(new Coords(down));
             }
