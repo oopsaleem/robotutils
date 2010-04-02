@@ -92,13 +92,6 @@ public abstract class AStar<State> {
     protected abstract Collection<State> succ(State s);
 
     /**
-     * Returns the set of predecessor states to the specified state.
-     * @param s the specified state.
-     * @return A set of predecessor states.
-     */
-    protected abstract Collection<State> pred(State s);
-
-    /**
      * An admissible heuristic function for the distance between two states.
      * In actual use, the second vertex will always be the goal state.
      *
