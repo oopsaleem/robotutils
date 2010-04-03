@@ -51,29 +51,29 @@ public class GridMapGenerator {
                     if (a != 0) {
                         if (b != 0) {
                             if (c != 0) {
-                                prob = 0.375; // all sides blocked
+                                prob = 0.6; // all sides blocked
                             } else {
-                                prob = 0.25; // left and up but no corner
+                                prob = 0.4; // left and up but no corner
                             }
                         } else {
                             if (c != 0) {
-                                prob = 0.75; // left and corner
+                                prob = 0.3; // left and corner
                             } else {
-                                prob = 0.95; // just left
+                                prob = 0.2; // just left
                             }
                         }
                     } else {
                         if (b != 0) {
                             if (c != 0) {
-                                prob = 0.75; // up and corner
+                                prob = 0.3; // up and corner
                             } else {
-                                prob = 0.95; // just up
+                                prob = 0.2; // just up
                             }
                         } else {
                             if (c != 0) {
-                                prob = 0.125; // just corner
+                                prob = 0.0; // just corner
                             } else {
-                                prob = 0.125; // nothing
+                                prob = 0.1; // nothing
                             }
                         }
                     }

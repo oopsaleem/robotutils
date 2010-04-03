@@ -44,7 +44,7 @@ public class GridAStar extends AStar<GridAStar.Coords> {
      * in arbitrary dimensions.  Equality, hashcode and comparisons are all
      * implemented as a lexical ordering over the integer array elements.
      */
-    protected static final class Coords implements Comparable<Coords> {
+    public static final class Coords implements Comparable<Coords> {
         final int[] X;
 
         public Coords(int[] c) {

@@ -27,11 +27,14 @@
 
 package robotutils.examples;
 
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Image;
+import java.awt.image.MemoryImageSource;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 import javax.swing.JFrame;
-import org.jgrapht.graph.DefaultEdge;
-import org.jgrapht.graph.DefaultWeightedEdge;
-import org.jgrapht.graph.UnmodifiableGraph;
 import robotutils.data.Coordinate;
 import robotutils.data.GridMapGenerator;
 import robotutils.data.GridMapUtils;
@@ -40,6 +43,7 @@ import robotutils.data.StaticMap;
 import robotutils.gui.MapPanel;
 import robotutils.planning.AStar;
 import robotutils.planning.EdgeDistance;
+import robotutils.planning.GridAStar;
 
 /**
  * Creates a randomized 2D map and solves a path between two random locations
@@ -47,37 +51,55 @@ import robotutils.planning.EdgeDistance;
  * @author Prasanna Velagapudi <pkv@cs.cmu.edu>
  */
 public class AStarPlanning {
+    public static Random rnd = new Random();
+
+    public static Image makeDot(Component cmp, int width, int height, Color c) {
+        int[] pixels = new int [width*height];
+
+        for (int index=0,y=0; y<height; y++) {
+            for (int x=0;x<width;x++) {
+                pixels[index++] = c.getRGB();
+            }
+        }
+
+        return cmp.createImage (new MemoryImageSource(width, height, pixels, 0, width));
+    }
+
     public static void main(String args[]) {
-        StaticMap sm = GridMapGenerator.createRandomMazeMap2D(100, 100);
-        
+        StaticMap sm = GridMapGenerator.createRandomMazeMap2D(10, 10);
+
         MapPanel mp = new MapPanel();
         mp.setMapImage(GridMapUtils.toImage(sm));
+        mp.setMapRect(0.0, sm.size(0), 0.0, sm.size(1));
 
         JFrame jf = new JFrame("Map");
         jf.setBounds(10, 10, 810, 610);
         jf.getContentPane().add(mp);
         jf.setVisible(true);
 
-        Coordinate start = new IntCoord(0, 0);
-        Coordinate goal = new IntCoord(50, 30);
-        
-        UnmodifiableGraph<Coordinate, DefaultWeightedEdge> graph = GridMapUtils.toGraph(sm);
-        System.out.println("Made Graph");
+        int[] start = new int[sm.dims()];
+        while (sm.get(start) < 0) {
+            for (int i = 0; i < sm.dims(); i++) {
+                start[i] = rnd.nextInt(sm.size(i));
+            }
+        }
 
-        List<DefaultWeightedEdge> path = AStar.search(graph,
-                new GridMapUtils.ManhattanDistance(),
-                new GridMapUtils.GraphDistance<DefaultWeightedEdge>(graph),
-                start, goal);
+        int[] goal = new int[sm.dims()];
+        while (sm.get(goal) < 0) {
+            for (int i = 0; i < sm.dims(); i++) {
+                goal[i] = rnd.nextInt(sm.size(i));
+            }
+        }
+
+        System.out.println("Made Graph: " + Arrays.toString(start) + "->" + Arrays.toString(goal));
+
+        mp.setIcon("Start", makeDot(mp, 1, 1, Color.GREEN), (double)start[0] + 0.5, (double)start[1] + 0.5);
+        mp.setIcon("Goal", makeDot(mp, 1, 1, Color.RED), (double)goal[0] + 0.5, (double)goal[1] + 0.5);
+
+        GridAStar astar = new GridAStar(sm);
+        List path = astar.search(new GridAStar.Coords(start), new GridAStar.Coords(goal));
+
         System.out.println("Done: " + path);
 
-        EdgeDistance d = new GridMapUtils.GraphDistance<DefaultWeightedEdge>(graph);
-        for (DefaultWeightedEdge e : path) {
-            Coordinate a = graph.getEdgeSource(e);
-            Coordinate b = graph.getEdgeTarget(e);
-
-            System.out.println("D: " + d.distance(e));
-
-            mp.getGraphics().drawLine((int)a.get(0), (int)a.get(1), (int)b.get(0), (int)b.get(1));
-        }
     }
 }
