@@ -5,6 +5,7 @@
 
 package robotutils.gui;
 
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -18,6 +19,7 @@ import java.awt.event.MouseWheelListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
+import java.awt.image.MemoryImageSource;
 import java.util.LinkedHashMap;
 import javax.swing.JPanel;
 import javax.swing.event.MouseInputListener;
@@ -78,6 +80,26 @@ public class MapPanel extends JPanel {
         mapImageTransform.setToIdentity();
         mapImageTransform.scale(1/(double)width, 1/(double)height);
         mapImageTransform.translate(-width/2, -height/2);
+    }
+
+    public Image makeDot(int width, int height, Color c) {
+        int[] pixels = new int [width*height];
+
+        // Fill in pixels according to an ellipse equation
+        for (int index=0, y=0; y<height; y++) {
+            for (int x=0; x<width; x++) {
+                boolean inEllipse = 4.0*(x - width/2)*(x - width/2)/(width * width + 1.0) +
+                        4.0*(y - height/2)*(y - height/2)/(height * height + 1.0) <= 1.0;
+
+                pixels[index++] = (inEllipse) ? c.getRGB() : 0;
+            }
+        }
+
+        return this.createImage( new MemoryImageSource(width, height, pixels, 0, width) );
+    }
+
+    public void setDotIcon(String name, Color c, int w, int h, double x, double y, double s) {
+        setIcon(name, makeDot(w, h, c), s, x, y, 0.0);
     }
 
     public void setIcon(String name, Image img, double s, double x, double y, double th) {
