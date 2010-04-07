@@ -28,9 +28,6 @@
 package robotutils.examples;
 
 import java.awt.Color;
-import java.awt.Component;
-import java.awt.Image;
-import java.awt.image.MemoryImageSource;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
