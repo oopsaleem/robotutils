@@ -51,21 +51,11 @@ import robotutils.planning.GridAStar;
 public class GridAStarPlanning {
     public static Random rnd = new Random();
 
-    public static Image makeDot(Component cmp, int width, int height, Color c) {
-        int[] pixels = new int [width*height];
-
-        for (int index=0,y=0; y<height; y++) {
-            for (int x=0;x<width;x++) {
-                pixels[index++] = c.getRGB();
-            }
-        }
-
-        return cmp.createImage( new MemoryImageSource(width, height, pixels, 0, width) );
-    }
-
     public static void main(String args[]) {
+        // Generate a random blocky map (using cellular automata rules)
         StaticMap sm = GridMapGenerator.createRandomMazeMap2D(100, 100);
 
+        // Create a display panel to draw the results
         MapPanel mp = new MapPanel();
         mp.setMapImage(GridMapUtils.toImage(sm));
         mp.setMapRect(0.0, sm.size(0), 0.0, sm.size(1));
@@ -75,6 +65,7 @@ public class GridAStarPlanning {
         jf.getContentPane().add(mp);
         jf.setVisible(true);
 
+        // Find an unoccupied start location
         int[] start = new int[sm.dims()];
         while (sm.get(start) < 0) {
             for (int i = 0; i < sm.dims(); i++) {
@@ -82,6 +73,7 @@ public class GridAStarPlanning {
             }
         }
 
+        // Find an unoccupied goal location
         int[] goal = new int[sm.dims()];
         while (sm.get(goal) < 0) {
             for (int i = 0; i < sm.dims(); i++) {
@@ -89,14 +81,16 @@ public class GridAStarPlanning {
             }
         }
 
+        // Print and display start and goal locations
         System.out.println("Made Graph: " + Arrays.toString(start) + "->" + Arrays.toString(goal));
-
         mp.setDotIcon("Start", Color.GREEN, 21, 21, (double)start[0] + 0.5, (double)start[1] + 0.5, 0.05);
         mp.setDotIcon("Goal", Color.RED, 21, 21, (double)goal[0] + 0.5, (double)goal[1] + 0.5, 0.05);
-        
+
+        // Perform A* search
         GridAStar astar = new GridAStar(sm);
         List<? extends Coordinate> path = astar.search(new IntCoord(start), new IntCoord(goal));
 
+        // Print and display resulting lowest cost path
         if (path.isEmpty()) {
             System.out.println("No path found!");
         } else {
