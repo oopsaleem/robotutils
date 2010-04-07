@@ -63,7 +63,7 @@ public class IntCoord implements Coordinate {
 
     @Override
     public String toString() {
-        return "IntCoord[" + Arrays.toString(_coords) + "]";
+        return Arrays.toString(_coords);
     }
 
     @Override
