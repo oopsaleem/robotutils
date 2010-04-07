@@ -49,6 +49,7 @@ public class GridAStarPlanning {
     public static Random rnd = new Random();
 
     public static void main(String args[]) {
+        
         // Generate a random blocky map (using cellular automata rules)
         StaticMap sm = GridMapGenerator.createRandomMazeMap2D(100, 100);
 
@@ -79,7 +80,7 @@ public class GridAStarPlanning {
         }
 
         // Print and display start and goal locations
-        System.out.println("Made Graph: " + Arrays.toString(start) + "->" + Arrays.toString(goal));
+        System.out.println("Picked endpoints: " + Arrays.toString(start) + "->" + Arrays.toString(goal));
         mp.setDotIcon("Start", Color.GREEN, 21, 21, (double)start[0] + 0.5, (double)start[1] + 0.5, 0.05);
         mp.setDotIcon("Goal", Color.RED, 21, 21, (double)goal[0] + 0.5, (double)goal[1] + 0.5, 0.05);
 
