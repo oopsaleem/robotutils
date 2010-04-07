@@ -80,7 +80,7 @@ public abstract class AStar<State> {
             Score s1 = _scores.get(o1);
             Score s2 = _scores.get(o2);
 
-            return (int)(s2.f - s1.f);
+            return (int)(s1.f - s2.f);
         }
     }
 
@@ -147,7 +147,12 @@ public abstract class AStar<State> {
             // If we reach the goal, traverse backwards to build a path
             if (x.equals(goal)) {
                 LinkedList<State> path = new LinkedList();
+
+                // Start at the goal
                 State curr = goal;
+                path.addFirst(curr);
+
+                // Iterate backwards to reach the start
                 while (!curr.equals(start)) {
                     Score<State> currScore = scores.get(curr);
                     path.addFirst(currScore.prev);

@@ -28,7 +28,18 @@ package robotutils.data;
  *
  * @author Prasanna Velagapudi <psigen@gmail.com>
  */
+
+/**
+ * A simple tuple class that represents a real-valued coordinate
+ * in arbitrary dimensions.  Equality, hashcode and comparisons should all be
+ * implemented as a lexical ordering over the tuple elements.  Comparison and
+ * equality between different implementations should imply that differences are
+ * within the numerical error constant.
+ */
 public interface Coordinate {
+    public static final double NUMERICAL_ERROR = 1e-10;
+
+    public double[] get();
     public double get(int dim);
     public int dims();
 }

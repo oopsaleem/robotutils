@@ -28,7 +28,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import robotutils.data.CoordUtils;
 import robotutils.data.GridMap;
+import robotutils.data.IntCoord;
 
 /**
  * Implementation of the A* algorithm that solves the planning problem for
@@ -37,105 +39,18 @@ import robotutils.data.GridMap;
  * 
  * @author Prasanna Velagapudi <psigen@gmail.com>
  */
-public class GridAStar extends AStar<GridAStar.Coords> {
+public class GridAStar extends AStar<IntCoord> {
 
     /**
-     * A simple tuple class that correctly represents an integer coordinate
-     * in arbitrary dimensions.  Equality, hashcode and comparisons are all
-     * implemented as a lexical ordering over the integer array elements.
+     * The map over which A* searches will be performed.
      */
-    public static final class Coords implements Comparable<Coords> {
-        final int[] X;
+    final GridMap _map;
 
-        public Coords(int[] c) {
-            this.X = Arrays.copyOf(c, c.length);
-        }
-
-        public int compareTo(Coords that) {
-            if (that == null || this.X.length != that.X.length) {
-                throw new IllegalArgumentException("Coordinate lengths don't match.");
-            }
-
-            for (int i = 0; i < this.X.length; i++) {
-                if (this.X[i] != that.X[i]) {
-                    return (that.X[i] - this.X[i]);
-                }
-            }
-
-            return 0;
-        }
-
-        @Override
-        public int hashCode() {
-            int hash = 5;
-            hash = 79 * hash + Arrays.hashCode(this.X);
-            return hash;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (!(obj instanceof Coords)) {
-                return false;
-            }
-
-            return Arrays.equals(this.X, ((Coords)obj).X);
-        }
-
-        /**
-         * Returns Manhattan distance from this point to another.
-         * @param that the other point
-         * @return the Manhattan distance to the other point
-         */
-        public int mdist(Coords that) {
-            if (that == null || this.X.length != that.X.length) {
-                throw new IllegalArgumentException("Coordinate lengths don't match.");
-            }
-
-            int dist = 0;
-            for (int i = 0; i < this.X.length; i++) {
-                dist += Math.abs(that.X[i] - this.X[i]);
-            }
-
-            return dist;
-        }
-
-        /**
-         * Returns Euclidean distance from this point to another.
-         * @param that the other point
-         * @return the Euclidean distance to the other point
-         */
-        public double edist(Coords that) {
-            if (that == null || this.X.length != that.X.length) {
-                throw new IllegalArgumentException("Coordinate lengths don't match.");
-            }
-
-            double dist = 0;
-            for (int i = 0; i < this.X.length; i++) {
-                dist += (that.X[i] - this.X[i])*(that.X[i] - this.X[i]);
-            }
-
-            return Math.sqrt(dist);
-        }
-
-        @Override
-        public String toString() {
-            String str = "(";
-            for (int i = 0; i < X.length; i++) {
-                str += X[i];
-                if (i < X.length - 1) {
-                    str += ",";
-                }
-            }
-            str += ")";
-
-            return str;
-        }
-    }
-
-    GridMap _map;
-
+    /**
+     * Instantiates A* search over the given map.
+     * @param map A grid map where each cell represents a cost of traversal
+     */
     public GridAStar(GridMap map) {
-
         _map = map;
     }
 
@@ -145,20 +60,20 @@ public class GridAStar extends AStar<GridAStar.Coords> {
      * @param s the current cell
      * @return a list of neighboring cells
      */
-    protected Collection<Coords> nbrs(Coords s) {
-        List<Coords> nbrs = new ArrayList(2*_map.dims());
+    protected Collection<IntCoord> nbrs(IntCoord s) {
+        List<IntCoord> nbrs = new ArrayList(2*_map.dims());
 
         for (int i = 0; i < _map.dims(); i++) {
-            int[] up = Arrays.copyOf(s.X, s.X.length);
+            int[] up = Arrays.copyOf(s.getInts(), s.getInts().length);
             up[i] += 1;
             if (_map.get(up) >= 0) {
-                nbrs.add(new Coords(up));
+                nbrs.add(new IntCoord(up));
             }
 
-            int[] down = Arrays.copyOf(s.X, s.X.length);
+            int[] down = Arrays.copyOf(s.getInts(), s.getInts().length);
             down[i] -= 1;
             if (_map.get(down) >= 0) {
-                nbrs.add(new Coords(down));
+                nbrs.add(new IntCoord(down));
             }
         }
 
@@ -166,24 +81,29 @@ public class GridAStar extends AStar<GridAStar.Coords> {
     }
 
     @Override
-    protected Collection<Coords> succ(Coords s) {
+    protected Collection<IntCoord> succ(IntCoord s) {
         return nbrs(s);
     }
 
     @Override
-    protected double h(Coords a, Coords b) {
-        return a.mdist(b);
+    protected double h(IntCoord a, IntCoord b) {
+        return CoordUtils.mdist(a, b);
     }
 
     @Override
-    protected double c(Coords a, Coords b) {
+    protected double c(IntCoord a, IntCoord b) {
 
-        if (a.mdist(b) != 1) {
+        if (CoordUtils.mdist(a, b) != 1) {
             return Double.POSITIVE_INFINITY;
         } else {
-            double cA = _map.get(a.X);
-            double cB = _map.get(b.X);
-            return (cA + cB)/2.0 + 1.0;
+            double cA = _map.get(a.getInts());
+            double cB = _map.get(b.getInts());
+
+            double cost = (cA + cB)/2.0 + 1.0;
+            if (cost <= 0) {
+                throw new IllegalStateException();
+            }
+            return cost;
         }
     }
 
