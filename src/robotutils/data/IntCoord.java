@@ -27,8 +27,9 @@ package robotutils.data;
 import java.util.Arrays;
 
 /**
- *
- * @author Prasanna Velagapudi <psigen@gmail.com>
+ * A simple tuple class that correctly represents an integer coordinate
+ * in arbitrary dimensions.  Equality, hashcode and comparisons are all
+ * implemented as a lexical ordering over the integer array elements.
  */
 public class IntCoord implements Coordinate {
 
@@ -38,8 +39,18 @@ public class IntCoord implements Coordinate {
         _coords = Arrays.copyOf(values, values.length);
     }
 
-    public int[] get() {
+    public int[] getInts() {
         return _coords;
+    }
+
+    public double[] get() {
+        double[] d = new double[_coords.length];
+
+        for (int i = 0; i < d.length; i++) {
+            d[i] = (double)_coords[i];
+        }
+
+        return d;
     }
 
     public double get(int dim) {
@@ -58,8 +69,17 @@ public class IntCoord implements Coordinate {
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof IntCoord) {
+            
+            // Use int array compare if other object is also an integer array
             IntCoord that = (IntCoord)obj;
             return Arrays.equals(this._coords, that._coords);
+
+        } else if (obj instanceof Coordinate) {
+
+            // Use slower double array compare if other object in unknown
+            Coordinate that = (Coordinate)obj;
+            return Arrays.equals(this.get(), that.get());
+
         } else {
             return false;
         }

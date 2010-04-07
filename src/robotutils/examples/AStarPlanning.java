@@ -41,8 +41,6 @@ import robotutils.data.GridMapUtils;
 import robotutils.data.IntCoord;
 import robotutils.data.StaticMap;
 import robotutils.gui.MapPanel;
-import robotutils.planning.AStar;
-import robotutils.planning.EdgeDistance;
 import robotutils.planning.GridAStar;
 
 /**
@@ -62,11 +60,11 @@ public class AStarPlanning {
             }
         }
 
-        return cmp.createImage (new MemoryImageSource(width, height, pixels, 0, width));
+        return cmp.createImage( new MemoryImageSource(width, height, pixels, 0, width) );
     }
 
     public static void main(String args[]) {
-        StaticMap sm = GridMapGenerator.createRandomMazeMap2D(10, 10);
+        StaticMap sm = GridMapGenerator.createRandomMazeMap2D(100, 100);
 
         MapPanel mp = new MapPanel();
         mp.setMapImage(GridMapUtils.toImage(sm));
@@ -97,9 +95,13 @@ public class AStarPlanning {
         mp.setIcon("Goal", makeDot(mp, 1, 1, Color.RED), (double)goal[0] + 0.5, (double)goal[1] + 0.5);
 
         GridAStar astar = new GridAStar(sm);
-        List path = astar.search(new GridAStar.Coords(start), new GridAStar.Coords(goal));
+        List<? extends Coordinate> path = astar.search(new IntCoord(start), new IntCoord(goal));
 
         System.out.println("Done: " + path);
 
+        for (int i = 1; i < path.size() - 1; i++) {
+            Coordinate c = path.get(i);
+            mp.setIcon("p" + i, makeDot(mp, 1, 1, Color.BLUE), c.get(0) + 0.5, c.get(1) + 0.5);
+        }
     }
 }
