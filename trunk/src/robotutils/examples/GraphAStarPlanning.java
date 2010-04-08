@@ -25,7 +25,6 @@
 package robotutils.examples;
 
 import java.awt.Color;
-import java.awt.Font;
 import java.awt.geom.Rectangle2D;
 import java.util.Hashtable;
 import java.util.List;
