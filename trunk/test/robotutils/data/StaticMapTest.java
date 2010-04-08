@@ -47,19 +47,23 @@ public class StaticMapTest {
         StaticMap instance = new StaticMap();
         instance.resize(dims);
 
-        assertEquals(3, instance.dims.length, 3);
+        assertEquals(3, instance.dims());
 
-        assertEquals(100, instance.dims[0]);
-        assertEquals(400, instance.dims[1]);
-        assertEquals(200, instance.dims[2]);
+        assertEquals(100, instance.size(0));
+        assertEquals(400, instance.size(1));
+        assertEquals(200, instance.size(2));
 
-        assertEquals(3, instance.cumDims.length);
+        assertEquals(100, instance.sizes()[0]);
+        assertEquals(400, instance.sizes()[1]);
+        assertEquals(200, instance.sizes()[2]);
 
-        assertEquals(1, instance.cumDims[0]);
-        assertEquals(100, instance.cumDims[1]);
-        assertEquals(100*400, instance.cumDims[2]);
+        assertEquals(3, instance._cumSizes.length);
 
-        assertEquals(100*400*200, instance.map.length);
+        assertEquals(1, instance._cumSizes[0]);
+        assertEquals(100, instance._cumSizes[1]);
+        assertEquals(100*400, instance._cumSizes[2]);
+
+        assertEquals(100*400*200, instance.length());
     }
 
     /**
@@ -68,19 +72,16 @@ public class StaticMapTest {
     @Test
     public void testGetAndSet() {
         System.out.println("get/set");
-        StaticMap instance = new StaticMap();
-
-        int[] size = {100, 200, 300};
-        instance.resize(size);
+        StaticMap instance = new StaticMap(100, 200, 300);
 
         Random rnd = new Random();
         int[] idx = new int[3];
 
         for (int i = 0; i < 1000; i++) {
             byte b = (byte)rnd.nextInt();
-            idx[0] = rnd.nextInt(size[0]);
-            idx[1] = rnd.nextInt(size[1]);
-            idx[2] = rnd.nextInt(size[2]);
+            idx[0] = rnd.nextInt(instance.size(0));
+            idx[1] = rnd.nextInt(instance.size(1));
+            idx[2] = rnd.nextInt(instance.size(2));
 
             instance.set(b, idx);
             assertEquals(instance.get(idx), b);
