@@ -24,10 +24,9 @@
 
 package robotutils.examples;
 
-import com.jgraph.layout.JGraphFacade;
-import com.jgraph.layout.JGraphLayout;
-import com.jgraph.layout.organic.JGraphFastOrganicLayout;
 import java.awt.Color;
+import java.awt.Font;
+import java.awt.geom.Rectangle2D;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -35,10 +34,13 @@ import java.util.Random;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import org.jgraph.JGraph;
+import org.jgraph.graph.AttributeMap;
+import org.jgraph.graph.DefaultGraphCell;
 import org.jgraph.graph.GraphConstants;
 import org.jgrapht.Graph;
 import org.jgrapht.ext.JGraphModelAdapter;
-import org.jgrapht.graph.DefaultEdge;
+import org.jgrapht.graph.DefaultWeightedEdge;
+import robotutils.data.CoordUtils;
 import robotutils.data.Coordinate;
 import robotutils.data.GridMapGenerator;
 import robotutils.data.GridMapUtils;
@@ -47,29 +49,43 @@ import robotutils.planning.GraphAStar;
 
 /**
  * Creates a randomized small worlds graph and solves a path between two random
- * locations using A-Star search.
+ * locations using A-Star search.  Note that a <i>significant</i> portion of
+ * this code is boilerplate code for creating and displaying the graph.  The
+ * actual use of the A* algorithm consists of only a handful of lines in the
+ * middle.
+ *
  * @author Prasanna Velagapudi <psigen@gmail.com>
  */
 public class GraphAStarPlanning {
     public static Random rnd = new Random();
-    public static final int GRAPH_SIZE = 100;
+    public static final int GRAPH_SIZE = 30;
 
     public static void main(String args[]) {
 
         // Generate a random blocky map (using cellular automata rules)
-        StaticMap sm = GridMapGenerator.createRandomMazeMap2D(10, 10);
-        Graph<Coordinate, ? extends DefaultEdge> g = GridMapUtils.toGraph(sm);
+        StaticMap sm = GridMapGenerator.createRandomMazeMap2D(GRAPH_SIZE, GRAPH_SIZE);
+        Graph<Coordinate, DefaultWeightedEdge> g = GridMapUtils.toGraph(sm);
         Coordinate[] vertices = g.vertexSet().toArray(new Coordinate[0]);
 
-        // Use jgraph to lay out the nodes in some reasonable way
-        JGraphModelAdapter jgAdapter = new JGraphModelAdapter( g );
+        // Set up vertex and edge display properties for jgraph
+        AttributeMap attrVertex = JGraphModelAdapter.createDefaultVertexAttributes();
+        AttributeMap attrEdge = JGraphModelAdapter.createDefaultEdgeAttributes( g );
+        GraphConstants.setLabelEnabled(attrEdge, false);
+        GraphConstants.setLineColor(attrEdge, Color.BLUE);
+
+        // Use jgraph to create a view of the graph
+        JGraphModelAdapter jgAdapter = new JGraphModelAdapter( g, attrVertex, attrEdge );
         JGraph jgraph = new JGraph( jgAdapter );
 
-        JGraphFacade facade = new JGraphFacade( jgraph );
-        JGraphLayout layout = new JGraphFastOrganicLayout();
-        layout.run( facade );
-        Map nested = facade.createNestedMap(true, true);
-        jgraph.getGraphLayoutCache().edit(nested);
+        // Position the nodes at their (x,y) locations
+        Map cellAttrs = new Hashtable();
+        for (Coordinate c : vertices) {
+            DefaultGraphCell cell = jgAdapter.getVertexCell( c );
+            Map cellAttr = cell.getAttributes();
+            GraphConstants.setBounds( cellAttr, new Rectangle2D.Double(c.get(0) * 60.0, c.get(1) * 60.0, 50.0, 50.0) );
+            cellAttrs.put( cell, cellAttr );
+        }
+        jgAdapter.edit( cellAttrs, null, null, null );
         
         // Create a display panel to draw the results
         JFrame jf = new JFrame("Graph");
@@ -78,51 +94,66 @@ public class GraphAStarPlanning {
         jf.setVisible(true);
 
         // Find a random start location
-        int startIdx = rnd.nextInt(vertices.length);
-        Coordinate start = vertices[startIdx];
+        Coordinate start;
+        do {
+            int startIdx = rnd.nextInt(vertices.length);
+            start = vertices[startIdx];
+        } while (!g.containsVertex(start));
 
-        // Find a random goal location
-        int goalIdx = rnd.nextInt(GRAPH_SIZE);
-        Coordinate goal = vertices[goalIdx];
+        // Find a random goal location (that isn't the same as the start)
+        Coordinate goal;
+        do {
+            int goalIdx = rnd.nextInt(vertices.length);
+            goal = vertices[goalIdx];
+        } while (!g.containsVertex(goal) || (start == goal));
 
         // Print and display start and goal locations
         System.out.println("Picked endpoints: " + start + "->" + goal);
 
-        Map nestedEndpts = new Hashtable();
+        Map endPtAttrs = new Hashtable();
+        {
+            DefaultGraphCell startCell = jgAdapter.getVertexCell( start );
+            Map attrStart = startCell.getAttributes();
+            GraphConstants.setBackground(attrStart, Color.GREEN);
+            endPtAttrs.put( startCell, attrStart);
 
-        Map attrStart = jgraph.getAttributes(jgAdapter.getVertexCell(start));
-        GraphConstants.setBackground(attrStart, Color.GREEN);
-        nestedEndpts.put(jgAdapter.getVertexCell(start), attrStart);
-
-        Map attrGoal = jgraph.getAttributes(jgAdapter.getVertexCell(goal));
-        GraphConstants.setBackground(attrGoal, Color.RED);
-        nestedEndpts.put(jgAdapter.getVertexCell(goal), attrGoal);
-
-        jgraph.getGraphLayoutCache().edit(nestedEndpts, null, null, null);
-        jgraph.refresh();
+            DefaultGraphCell goalCell = jgAdapter.getVertexCell( goal );
+            Map attrGoal = goalCell.getAttributes();
+            GraphConstants.setBackground(attrGoal, Color.RED);
+            endPtAttrs.put( goalCell, attrGoal);
+        }
+        jgAdapter.edit( endPtAttrs, null, null, null );
         
+        // Create an A* instantiation that uses the coordinates stored in each
+        // vertex to compute Manhattan distance.
+        GraphAStar<Coordinate, DefaultWeightedEdge> astar =
+                new GraphAStar<Coordinate, DefaultWeightedEdge>(g) {
 
-//        // Perform A* search
-//        GraphAStar astar = new GraphAStar(g) {
-//
-//            @Override
-//            protected double h(Object a, Object b) {
-//                throw new UnsupportedOperationException("Not supported yet.");
-//            }
-//        };
-//
-//        List<? extends Coordinate> path = astar.search(start, goal);
+            @Override
+            protected double h(Coordinate a, Coordinate b) {
+                return CoordUtils.mdist(a, b);
+            }
+        };
 
-//        // Print and display resulting lowest cost path
-//        if (path.isEmpty()) {
-//            System.out.println("No path found!");
-//        } else {
-//            System.out.println("Solution path: " + path);
-//
-//            for (int i = 1; i < path.size() - 1; i++) {
-//                Coordinate c = path.get(i);
-//                mp.setDotIcon("p" + i, Color.BLUE, 11, 11, c.get(0) + 0.5, c.get(1) + 0.5, 0.05);
-//            }
-//        }
+        // Perform A* search
+        List<DefaultWeightedEdge> path = astar.searchEdges(start, goal);
+
+        // Print and display resulting lowest cost path
+        if (path.isEmpty()) {
+            System.out.println("No path found!");
+        } else {
+            System.out.println("Solution path: " + path);
+
+            // Display resulting path by marking the edges that were used
+            Map pathAttrs = new Hashtable();
+            for (DefaultWeightedEdge e : path) {
+                DefaultGraphCell cell = jgAdapter.getEdgeCell( e );
+                Map attr = cell.getAttributes();
+                GraphConstants.setLineColor( attr, Color.MAGENTA );
+                GraphConstants.setLineWidth( attr, 5.0f );
+                cellAttrs.put( cell, attr );
+            }
+            jgAdapter.edit( pathAttrs, null, null, null );
+        }
     }
 }
