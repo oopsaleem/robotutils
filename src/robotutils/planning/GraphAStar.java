@@ -26,6 +26,8 @@ package robotutils.planning;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import org.jgrapht.Graph;
 
@@ -54,14 +56,71 @@ public abstract class GraphAStar<V, E> extends AStar<V> {
         _graph = graph;
     }
 
+    /**
+     * A wrapper function that searches for a set of edges that yields the
+     * optimal path of vertices returned by A*.
+     * @param start the starting vertex
+     * @param goal the ending vertex
+     * @return a list of edges implementing an optimal path
+     */
+    public List<E> searchEdges(V start, V goal) {
+
+        // Find the optimal vertex path, if it exists
+        List<V> path = super.search(start, goal);
+        if (path.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        // Find the cheapest edges between each neighboring vertex in solution
+        List<E> edgePath = new ArrayList(path.size() - 1);
+
+        V last = start;
+        for (V curr : path) {
+
+            // Ignore the start vertex, we are already there
+            if (curr.equals(start)) {
+                continue;
+            }
+
+            // Get all of the edges between this vertex and the next
+            Set<E> edges = _graph.getAllEdges(last, curr);
+
+            // Find the lowest cost edge to the next vertex
+            double minWeight = Double.POSITIVE_INFINITY;
+            E minEdge = null;
+
+            for (E edge : edges) {
+                double weight = _graph.getEdgeWeight(edge);
+
+                if (weight < minWeight) {
+                    minEdge = edge;
+                    minWeight = weight;
+                }
+            }
+
+            // Add this edge to the solution path
+            edgePath.add(minEdge);
+            last = curr;
+        }
+
+        return edgePath;
+    }
+
     @Override
     protected Collection<V> succ(V s) {
         Set<E> edges = _graph.edgesOf(s);
         Collection<V> succs = new ArrayList(edges.size());
 
         for (E edge : edges) {
-            if ( _graph.getEdgeSource(edge).equals(s) ) {
+            V source = _graph.getEdgeSource(edge);
+            V target = _graph.getEdgeTarget(edge);
+
+            if ( source.equals(s) ) {
                 succs.add(_graph.getEdgeTarget(edge));
+            } else if ( target.equals(s) ) {
+                if (_graph.containsEdge( s, source )) {
+                    succs.add( source );
+                }
             }
         }
 
