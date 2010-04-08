@@ -71,9 +71,9 @@ public class GridAStarPlanning {
             }
         }
 
-        // Find an unoccupied goal location
+        // Find an unoccupied goal location (that isn't the same as the start)
         int[] goal = new int[sm.dims()];
-        while (sm.get(goal) < 0) {
+        while (sm.get(goal) < 0 || Arrays.equals(start, goal)) {
             for (int i = 0; i < sm.dims(); i++) {
                 goal[i] = rnd.nextInt(sm.size(i));
             }
