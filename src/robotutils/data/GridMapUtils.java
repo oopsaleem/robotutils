@@ -80,7 +80,6 @@ public class GridMapUtils {
     }
 
     public static UnmodifiableGraph<Coordinate, DefaultWeightedEdge> toGraph(GridMap map) {
-        //return new UnmodifiableGraph(new GridGraph(map));
 
         SimpleWeightedGraph<Coordinate, DefaultWeightedEdge> graph =
                 new SimpleWeightedGraph<Coordinate, DefaultWeightedEdge>(DefaultWeightedEdge.class);
@@ -90,9 +89,11 @@ public class GridMapUtils {
         int[] sizes = map.sizes();
         int[] idx = new int[dims];
 
-        // Add every vertex
+        // Add every vertex that is not an obstacle
         for (int v = 0; v < length; v++) {
-            graph.addVertex(new IntCoord(idx));
+            if (map.get(idx) >= 0) {
+                graph.addVertex(new IntCoord(idx));
+            }
 
             for (int i = 0; i < dims; i++) {
                 if (idx[i] < sizes[i] - 1) {
@@ -104,7 +105,7 @@ public class GridMapUtils {
             }
         }
 
-        // Add every edge
+        // Add every non-obstacle edge
         for (int v = 0; v < length; v++) {
             for (int i = 0; i < dims; i++) {
                 if (idx[i] < sizes[i] - 1) {
@@ -116,7 +117,9 @@ public class GridMapUtils {
                         graph.setEdgeWeight(e, ((double)map.get(idx) + (double)map.get(idx1))/2.0);
                     }
                 }
+            }
 
+            for (int i = 0; i < dims; i++) {
                 if (idx[i] < sizes[i] - 1) {
                     idx[i]++;
                     break;
