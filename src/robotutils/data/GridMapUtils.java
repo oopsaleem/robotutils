@@ -114,7 +114,7 @@ public class GridMapUtils {
 
                     if (map.get(idx) >= 0 && map.get(idx1) >= 0) {
                         DefaultWeightedEdge e = graph.addEdge(new IntCoord(idx), new IntCoord(idx1));
-                        graph.setEdgeWeight(e, ((double)map.get(idx) + (double)map.get(idx1))/2.0);
+                        graph.setEdgeWeight(e, ((double)map.get(idx) + (double)map.get(idx1))/2.0 + 1.0);
                     }
                 }
             }
