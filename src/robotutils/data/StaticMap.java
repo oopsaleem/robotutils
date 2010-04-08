@@ -34,10 +34,17 @@ import java.util.Arrays;
  * @author Prasanna Velagapudi <pkv@cs.cmu.edu>
  */
 public class StaticMap implements GridMap {
-    byte[] _map;
-    int[] _sizes;
-    int[] _cumSizes;
-    int _length;
+    byte[] _map = null;
+    int[] _sizes = new int[0];
+    int[] _cumSizes = new int[0];
+    int _length = 0;
+
+    public StaticMap() {    
+    }
+
+    public StaticMap(int... sizes) {
+        resize(sizes);
+    }
 
     public void resize(int... sizes) {
         _sizes = Arrays.copyOf(sizes, sizes.length);
@@ -54,7 +61,7 @@ public class StaticMap implements GridMap {
 
     protected int index(int[] idx) {
         int linIdx = 0;
-
+        
         for (int i = 0; i < _sizes.length; i++) {
             if (idx[i] < 0) return -1;
             if (idx[i] >= _sizes[i]) return -1;
