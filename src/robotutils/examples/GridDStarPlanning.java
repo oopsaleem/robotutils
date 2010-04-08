@@ -28,9 +28,6 @@
 package robotutils.examples;
 
 import java.awt.Color;
-import java.awt.Component;
-import java.awt.Image;
-import java.awt.image.MemoryImageSource;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -41,31 +38,22 @@ import robotutils.data.GridMapUtils;
 import robotutils.data.IntCoord;
 import robotutils.data.StaticMap;
 import robotutils.gui.MapPanel;
-import robotutils.planning.GridAStar;
+import robotutils.planning.GridDStar;
 
 /**
  * Creates a randomized 2D map and solves a path between two random locations
  * using A-Star search.
  * @author Prasanna Velagapudi <pkv@cs.cmu.edu>
  */
-public class AStarPlanning {
+public class GridDStarPlanning {
     public static Random rnd = new Random();
 
-    public static Image makeDot(Component cmp, int width, int height, Color c) {
-        int[] pixels = new int [width*height];
-
-        for (int index=0,y=0; y<height; y++) {
-            for (int x=0;x<width;x++) {
-                pixels[index++] = c.getRGB();
-            }
-        }
-
-        return cmp.createImage( new MemoryImageSource(width, height, pixels, 0, width) );
-    }
-
     public static void main(String args[]) {
+
+        // Generate a random blocky map (using cellular automata rules)
         StaticMap sm = GridMapGenerator.createRandomMazeMap2D(100, 100);
 
+        // Create a display panel to draw the results
         MapPanel mp = new MapPanel();
         mp.setMapImage(GridMapUtils.toImage(sm));
         mp.setMapRect(0.0, sm.size(0), 0.0, sm.size(1));
@@ -75,6 +63,7 @@ public class AStarPlanning {
         jf.getContentPane().add(mp);
         jf.setVisible(true);
 
+        // Find an unoccupied start location
         int[] start = new int[sm.dims()];
         while (sm.get(start) < 0) {
             for (int i = 0; i < sm.dims(); i++) {
@@ -82,26 +71,33 @@ public class AStarPlanning {
             }
         }
 
+        // Find an unoccupied goal location (that isn't the same as the start)
         int[] goal = new int[sm.dims()];
-        while (sm.get(goal) < 0) {
+        while (sm.get(goal) < 0 || Arrays.equals(start, goal)) {
             for (int i = 0; i < sm.dims(); i++) {
                 goal[i] = rnd.nextInt(sm.size(i));
             }
         }
 
-        System.out.println("Made Graph: " + Arrays.toString(start) + "->" + Arrays.toString(goal));
+        // Print and display start and goal locations
+        System.out.println("Picked endpoints: " + Arrays.toString(start) + "->" + Arrays.toString(goal));
+        mp.setDotIcon("Start", Color.GREEN, 21, 21, (double)start[0] + 0.5, (double)start[1] + 0.5, 0.05);
+        mp.setDotIcon("Goal", Color.RED, 21, 21, (double)goal[0] + 0.5, (double)goal[1] + 0.5, 0.05);
 
-        mp.setIcon("Start", makeDot(mp, 1, 1, Color.GREEN), (double)start[0] + 0.5, (double)start[1] + 0.5);
-        mp.setIcon("Goal", makeDot(mp, 1, 1, Color.RED), (double)goal[0] + 0.5, (double)goal[1] + 0.5);
+        // Perform A* search
+        GridDStar dstar = new GridDStar(sm, new IntCoord(start), new IntCoord(goal));
+        List<? extends Coordinate> path = dstar.plan();
 
-        GridAStar astar = new GridAStar(sm);
-        List<? extends Coordinate> path = astar.search(new IntCoord(start), new IntCoord(goal));
+        // Print and display resulting lowest cost path
+        if (path.isEmpty()) {
+            System.out.println("No path found!");
+        } else {
+            System.out.println("Solution path: " + path);
 
-        System.out.println("Done: " + path);
-
-        for (int i = 1; i < path.size() - 1; i++) {
-            Coordinate c = path.get(i);
-            mp.setIcon("p" + i, makeDot(mp, 1, 1, Color.BLUE), c.get(0) + 0.5, c.get(1) + 0.5);
+            for (int i = 1; i < path.size() - 1; i++) {
+                Coordinate c = path.get(i);
+                mp.setDotIcon("p" + i, Color.BLUE, 11, 11, c.get(0) + 0.5, c.get(1) + 0.5, 0.05);
+            }
         }
     }
 }
