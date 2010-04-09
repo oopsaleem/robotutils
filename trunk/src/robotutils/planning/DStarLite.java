@@ -31,7 +31,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
-import java.util.logging.Logger;
+import robotutils.data.DoubleUtils;
 
 /**
  * This class implements the optimized D*-lite algorithm exactly as described
@@ -47,8 +47,6 @@ import java.util.logging.Logger;
  * @author Prasanna Velagapudi <psigen@gmail.com>
  */
 public abstract class DStarLite<State> {
-
-    private static final Logger logger = Logger.getLogger(DStarLite.class.getName());
 
     /**
      * Defines a suitably large initial capacity for internal data structures
@@ -288,11 +286,11 @@ public abstract class DStarLite<State> {
 
     void updateVertex(State u) {
 
-        if (_g.get(u) != _rhs.get(u) && _U.contains(u)) {
+        if (!DoubleUtils.equals(_g.get(u),  _rhs.get(u)) && _U.contains(u)) {
             _U.update(u, calculateKey(u));
-        } else if (_g.get(u) != _rhs.get(u) && !_U.contains(u)) {
+        } else if (!DoubleUtils.equals(_g.get(u),  _rhs.get(u)) && !_U.contains(u)) {
             _U.insert(u, calculateKey(u));
-        } else if (_g.get(u) == _rhs.get(u) && _U.contains(u)) {
+        } else if (DoubleUtils.equals(_g.get(u),  _rhs.get(u)) && _U.contains(u)) {
             _U.remove(u);
         }
     }
@@ -305,8 +303,6 @@ public abstract class DStarLite<State> {
             State u = _U.top();
             Key kOld = _U.topKey();
             Key kNew = calculateKey(u);
-
-            logger.info("Exploring: " + u + " in " + _U);
 
             if (kOld.compareTo(kNew) < 0) {
                 _U.update(u, kNew);
@@ -329,7 +325,7 @@ public abstract class DStarLite<State> {
                 preds.add(u);
 
                 for (State s : preds) {
-                    if (_rhs.get(s) == c(s,u) + gOld) {
+                    if (DoubleUtils.equals(_rhs.get(s), c(s,u) + gOld)) {
                         if (!s.equals(_goal)) {
                             double minRhs = Double.POSITIVE_INFINITY;
 
@@ -364,7 +360,7 @@ public abstract class DStarLite<State> {
             if (!u.equals(_goal)) {
                 _rhs.put(u, Math.min(_rhs.get(u), c(u,v) + _g.get(v)));
             }
-        } else if (_rhs.get(u) == cOld + _g.get(v)) {
+        } else if (DoubleUtils.equals(_rhs.get(u), cOld + _g.get(v))) {
             if (!u.equals(_goal)) {
                 if (!u.equals(_goal)) {
                     double minRhs = Double.POSITIVE_INFINITY;
@@ -415,7 +411,6 @@ public abstract class DStarLite<State> {
         while(!s.equals(_goal)) {
             // If rhs(sStart) == Inf, then there is no known path
             if (_rhs.get(s) == Double.POSITIVE_INFINITY) {
-                logger.warning("No path found.");
                 return Collections.emptyList();
             }
 
