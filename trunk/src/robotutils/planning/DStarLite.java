@@ -51,6 +51,12 @@ public abstract class DStarLite<State> {
     private static final Logger logger = Logger.getLogger(DStarLite.class.getName());
 
     /**
+     * Defines a suitably large initial capacity for internal data structures
+     * to avoid Java's heuristics reallocating up from scratch.
+     */
+    public static final int INITIAL_CAPACITY = 1024;
+
+    /**
      * A tuple with two components used to assign priorities to states in the
      * D* search.  Keys are compared according to a lexical ordering, e.g.
      * k &lt k' iff either k1 &lt k'1 or (k1 = k'1 and k2 &lt k'2).
@@ -152,15 +158,18 @@ public abstract class DStarLite<State> {
             }
         }
 
+        private class StateKeyComparator implements Comparator<StateKey> {
+            
+            public int compare(StateKey o1, StateKey o2) {
+                // Lowest key = highest priority (reversing lexical ordering)
+                return o1.k.compareTo(o2.k);
+            }
+        }
+    
         private PriorityQueue<StateKey> _queue;
 
         public KeyQueue() {
-            _queue = new PriorityQueue(1000, new Comparator<StateKey>() {
-
-                public int compare(StateKey o1, StateKey o2) {
-                    return o1.k.compareTo(o2.k);
-                }
-            });
+            _queue = new PriorityQueue(INITIAL_CAPACITY, new StateKeyComparator());
         }
 
         public void insert(State s, Key k) {
@@ -194,7 +203,15 @@ public abstract class DStarLite<State> {
 
         @Override
         public String toString() {
-            return _queue.toString();
+            String str = "[";
+            PriorityQueue tmp = new PriorityQueue(_queue);
+
+            while (!tmp.isEmpty()) {
+                str += tmp.poll().toString();
+                if (!tmp.isEmpty()) str += ",";
+            }
+            
+            return str + "]";
         }
     }
 
@@ -282,8 +299,6 @@ public abstract class DStarLite<State> {
 
     void computeShortestPath() {
 
-        logger.info("Tree: " + _U);
-
         while ( !_U.isEmpty() &&
                 (_U.topKey().compareTo(calculateKey(_start)) < 0 || _rhs.get(_start) > _g.get(_start)) ) {
 
@@ -291,7 +306,7 @@ public abstract class DStarLite<State> {
             Key kOld = _U.topKey();
             Key kNew = calculateKey(u);
 
-            logger.info("Exploring: " + u);
+            logger.info("Exploring: " + u + " in " + _U);
 
             if (kOld.compareTo(kNew) < 0) {
                 _U.update(u, kNew);
@@ -302,8 +317,9 @@ public abstract class DStarLite<State> {
                 for (State s : pred(u)) {
                     if (!s.equals(_goal)) {
                         _rhs.put(s, Math.min(_rhs.get(s), c(s, u) + _g.get(u)));
-                        updateVertex(s);
                     }
+
+                    updateVertex(s);
                 }
             } else {
                 double gOld = _g.get(u);
@@ -327,6 +343,7 @@ public abstract class DStarLite<State> {
                             _rhs.put(s, minRhs);
                         }
                     }
+                    
                     updateVertex(s);
                 }
             }
