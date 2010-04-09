@@ -24,11 +24,11 @@
 
 package robotutils.planning;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.logging.Logger;
@@ -275,7 +275,7 @@ public abstract class DStarLite<State> {
         _goal = goal;
 
         _rhs.put(_goal, 0.0);
-        _U.insert(goal, new Key(h(_start, _goal), 0));
+        _U.insert(_goal, new Key(h(_start, _goal), 0));
     }
 
     Key calculateKey(State s) {
@@ -407,7 +407,7 @@ public abstract class DStarLite<State> {
      */
     public List<State> plan() {
 
-        List<State> path = new ArrayList(100);        
+        LinkedList<State> path = new LinkedList<State>();
         State s = _start;
         path.add(s);
 
@@ -432,7 +432,7 @@ public abstract class DStarLite<State> {
             }
 
             s = minS;
-            path.add(s);
+            path.addLast(s);
         }
 
         return path;
