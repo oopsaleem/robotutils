@@ -37,8 +37,7 @@ package robotutils.data;
  * within the numerical error constant.
  */
 public interface Coordinate {
-    public static final double NUMERICAL_ERROR = 1e-10;
-
+    
     public double[] get();
     public double get(int dim);
     public int dims();
