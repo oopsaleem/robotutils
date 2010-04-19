@@ -54,27 +54,27 @@ public class KalmanFilter {
     /**
      * Default process model (state transition matrix).
      */
-    protected RealMatrix myF;
+    protected RealMatrix _F;
     
     /**
      * Default process noise.
      */
-    protected RealMatrix myQ;
+    protected RealMatrix _Q;
     
     /**
      * Default control model (maps control vector to state space).
      */
-    protected RealMatrix myB;
+    protected RealMatrix _B;
     
     /**
      * Default observation model (maps observations to state space).
      */
-    protected RealMatrix myH;
+    protected RealMatrix _H;
     
     /**
      * Default observation noise.
      */
-    protected RealMatrix myR;
+    protected RealMatrix _R;
     
     /**
      * Constructs a Kalman filter with no default motion and observation
@@ -100,9 +100,9 @@ public class KalmanFilter {
             RealMatrix F, RealMatrix Q, RealMatrix B) {
         this(x, P);
         
-        myF = F;
-        myQ = Q;
-        myB = B;
+        _F = F;
+        _Q = Q;
+        _B = B;
     }
     
     /**
@@ -121,8 +121,8 @@ public class KalmanFilter {
             RealMatrix H, RealMatrix R) {
         this(x, P, F, Q, B);
         
-        myH = H;
-        myR = R;
+        _H = H;
+        _R = R;
     }
     
     /**
@@ -131,7 +131,7 @@ public class KalmanFilter {
      * @param u the current control input.
      */
     public void predict(RealMatrix u) {
-        predict(myF, myQ, myB, u);
+        predict(_F, _Q, _B, u);
     }
     
     /**
@@ -153,7 +153,7 @@ public class KalmanFilter {
      * @param z the current measurement.
      */
     public void update(RealMatrix z) {
-        update(myH, myR, z);
+        update(_H, _R, z);
     }
     
     /**
@@ -222,7 +222,7 @@ public class KalmanFilter {
      * @param F the new process model. 
      */
     public void setProcessModel(RealMatrix F) {
-        this.myF = F;
+        this._F = F;
     }
     
     /**
@@ -230,7 +230,7 @@ public class KalmanFilter {
      * @return the default process model.
      */
     public RealMatrix getProcessModel() {
-        return myF.copy();
+        return _F.copy();
     }
     
     /**
@@ -238,7 +238,7 @@ public class KalmanFilter {
      * @param Q the new process noise.
      */
     public void setProcessNoise(RealMatrix Q) {
-        this.myQ = Q;
+        this._Q = Q;
     }
     
     /**
@@ -246,7 +246,7 @@ public class KalmanFilter {
      * @return the default process noise.
      */
     public RealMatrix getProcessNoise() {
-        return myQ.copy();
+        return _Q.copy();
     }
     
     /**
@@ -254,7 +254,7 @@ public class KalmanFilter {
      * @param B the new control model.
      */
     public void setControlModel(RealMatrix B) {
-        this.myB = B;
+        this._B = B;
     }
     
     /**
@@ -262,7 +262,7 @@ public class KalmanFilter {
      * @return the default control model.
      */
     public RealMatrix getControlModel() {
-        return myB.copy();
+        return _B.copy();
     }
     
     /**
@@ -270,7 +270,7 @@ public class KalmanFilter {
      * @param H the new observation model.
      */
     public void setObsModel(RealMatrix H) {
-        this.myH = H;
+        this._H = H;
     }
     
     /**
@@ -278,7 +278,7 @@ public class KalmanFilter {
      * @return the default observation model.
      */
     public RealMatrix getObsModel() {
-        return myH.copy();
+        return _H.copy();
     }
     
     /**
@@ -286,7 +286,7 @@ public class KalmanFilter {
      * @param R the new observation noise.
      */
     public void setObsNoise(RealMatrix R) {
-        this.myR = R;
+        this._R = R;
     }
     
     /**
@@ -294,7 +294,7 @@ public class KalmanFilter {
      * @return the default observation noise.
      */
     public RealMatrix getObsNoise() {
-        return myR.copy();
+        return _R.copy();
     }
     
 }
