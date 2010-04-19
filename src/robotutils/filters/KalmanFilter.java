@@ -39,17 +39,17 @@ public class KalmanFilter {
     /**
      * Predicted state.
      */
-    protected RealMatrix x;
+    protected RealMatrix _x;
     
     /**
      * Predicted state covariance.
      */
-    protected RealMatrix P;
+    protected RealMatrix _P;
     
     /**
      * Optimal Kalman gain.
      */
-    protected RealMatrix K;
+    protected RealMatrix _K;
         
     /**
      * Default process model (state transition matrix).
@@ -83,8 +83,8 @@ public class KalmanFilter {
      * @param P the initial state covariance.
      */
     public KalmanFilter(RealMatrix x, RealMatrix P) {
-        this.x = x;
-        this.P = P;
+        _x = x;
+        _P = P;
     }
     
     /**
@@ -143,8 +143,8 @@ public class KalmanFilter {
      * @param u the current control input.
      */
     public void predict(RealMatrix F, RealMatrix Q, RealMatrix B, RealMatrix u) {
-        x = F.multiply(x).add(B.multiply(u));
-        P = F.multiply(P).multiply(F.transpose()).add(Q);
+        _x = F.multiply(_x).add(B.multiply(u));
+        _P = F.multiply(_P).multiply(F.transpose()).add(Q);
     }
 
     /**
@@ -165,16 +165,16 @@ public class KalmanFilter {
      */
     public void update(RealMatrix H, RealMatrix R, RealMatrix z) {
         // Create a non-square identity matrix
-        RealMatrix I = MatrixUtils.createRealMatrix(K.getRowDimension(), H.getColumnDimension());
-        int dim = Math.min(K.getRowDimension(), H.getColumnDimension());
+        RealMatrix I = MatrixUtils.createRealMatrix(_K.getRowDimension(), H.getColumnDimension());
+        int dim = Math.min(_K.getRowDimension(), H.getColumnDimension());
         I = I.add(MatrixUtils.createRealIdentityMatrix(dim));
 
         // Apply the rest of the Kalman update
-        RealMatrix y = z.subtract(H.multiply(x));
-        RealMatrix S = H.multiply(P).multiply(H.transpose()).add(R);
-        K = P.multiply(H.transpose()).multiply(S.inverse());
-        x = x.add(K.multiply(y));
-        P = I.subtract(K.multiply(H)).multiply(P);
+        RealMatrix y = z.subtract(H.multiply(_x));
+        RealMatrix S = H.multiply(_P).multiply(H.transpose()).add(R);
+        _K = _P.multiply(H.transpose()).multiply(S.inverse());
+        _x = _x.add(_K.multiply(y));
+        _P = I.subtract(_K.multiply(H)).multiply(_P);
     }
     
     /**
@@ -182,7 +182,7 @@ public class KalmanFilter {
      * @param x the new state estimate.
      */
     public void setState(RealMatrix x) {
-        this.x = x;
+        _x = x;
     }
     
     /**
@@ -190,7 +190,7 @@ public class KalmanFilter {
      * @return the current state estimate.
      */
     public RealMatrix getState() {
-        return x.copy();
+        return _x.copy();
     }
     
     /**
@@ -198,7 +198,7 @@ public class KalmanFilter {
      * @param P the new state covariance.
      */
     public void setStateCov(RealMatrix P) {
-        this.P = P;
+        _P = P;
     }
     
     /**
@@ -206,7 +206,7 @@ public class KalmanFilter {
      * @return the current state covariance.
      */
     public RealMatrix getStateCov() {
-        return P.copy();
+        return _P.copy();
     }
     
     /**
@@ -214,7 +214,7 @@ public class KalmanFilter {
      * @return the current Kalman gain.
      */
     public RealMatrix getKalmanGain() {
-        return K.copy();
+        return _K.copy();
     }
     
     /**
@@ -222,7 +222,7 @@ public class KalmanFilter {
      * @param F the new process model. 
      */
     public void setProcessModel(RealMatrix F) {
-        this._F = F;
+        _F = F;
     }
     
     /**
@@ -238,7 +238,7 @@ public class KalmanFilter {
      * @param Q the new process noise.
      */
     public void setProcessNoise(RealMatrix Q) {
-        this._Q = Q;
+        _Q = Q;
     }
     
     /**
@@ -254,7 +254,7 @@ public class KalmanFilter {
      * @param B the new control model.
      */
     public void setControlModel(RealMatrix B) {
-        this._B = B;
+        _B = B;
     }
     
     /**
@@ -270,7 +270,7 @@ public class KalmanFilter {
      * @param H the new observation model.
      */
     public void setObsModel(RealMatrix H) {
-        this._H = H;
+        _H = H;
     }
     
     /**
@@ -286,7 +286,7 @@ public class KalmanFilter {
      * @param R the new observation noise.
      */
     public void setObsNoise(RealMatrix R) {
-        this._R = R;
+        _R = R;
     }
     
     /**
