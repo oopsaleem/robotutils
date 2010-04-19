@@ -27,7 +27,6 @@
 
 package robotutils.filters;
 
-import robotutils.*;
 import org.apache.commons.math.linear.RealMatrix;
 
 /**
@@ -39,32 +38,46 @@ import org.apache.commons.math.linear.RealMatrix;
  * provided linearization functions.
  * @author Prasanna Velagapudi <pkv@cs.cmu.edu>
  */
-public class ExtendedKalmanFilter extends KalmanFilter {
+public abstract class ExtendedKalmanFilter extends KalmanFilter {
 
     /**
-     * Default process model (state transition matrix).
+     * Process model linearization function.
+     * (Creates state transition matrix.)
+     * @param x the state around which to linearize.
+     * @return the linearized process model.
      */
-    protected StateDependentFunction myFnF;
-    
+    protected abstract RealMatrix F(RealMatrix x);
+
     /**
-     * Default process noise.
+     * Process noise linearization function.
+     * @param x the state around which to linearize.
+     * @return the linearized process noise.
      */
-    protected StateDependentFunction myFnQ;
-    
+    protected abstract RealMatrix Q(RealMatrix x);
+
     /**
-     * Default control model (maps control vector to state space).
+     * Control model linearization function.
+     * (Maps control vector to state space.)
+     * @param x the state around which to linearize.
+     * @return the linearized control model.
      */
-    protected StateDependentFunction myFnB;
-    
+    protected abstract RealMatrix B(RealMatrix x);
+
     /**
-     * Default observation model (maps observations to state space).
+     * Observation model linearization function.
+     * (Maps observations to state space.)
+     * @param x the state around which to linearize.
+     * @return the linearized observation model.
      */
-    protected StateDependentFunction myFnH;
+    protected abstract RealMatrix H(RealMatrix x);
+
     /**
-     * Default observation noise.
+     * Observation noise linearization function.
+     * @param x the state around which to linearize.
+     * @return the linearized observation noise.
      */
-    protected StateDependentFunction myFnR;
-    
+    protected abstract RealMatrix R(RealMatrix x);
+
     /**
      * Constructs an extended Kalman filter with no default motion and 
      * observation models.
@@ -76,232 +89,26 @@ public class ExtendedKalmanFilter extends KalmanFilter {
     }
     
     /**
-     * Constructs an extended Kalman filter with a default motion model and no 
-     * default observation model.
-     * @param x the initial state estimate.
-     * @param P the initial state covariance.
-     * @param F the default process model.
-     * @param Q the default process noise.
-     * @param B the default control model.
-     */
-    public ExtendedKalmanFilter(RealMatrix x, RealMatrix P,
-            StateDependentFunction F,
-            StateDependentFunction Q,
-            StateDependentFunction B) {
-        this(x, P);
-        
-        myFnF = F;
-        myFnQ = Q;
-        myFnB = B;
-    }
-    
-    /**
-     * Constructs an extended Kalman filter with a default motion model and 
-     * default observation model.
-     * @param x the initial state estimate.
-     * @param P the initial state covariance.
-     * @param F the default process model.
-     * @param Q the default process noise.
-     * @param B the default control model.
-     * @param H the default observation model.
-     * @param R the default observation noise.
-     */
-    public ExtendedKalmanFilter(RealMatrix x, RealMatrix P,
-            StateDependentFunction F, 
-            StateDependentFunction Q, 
-            StateDependentFunction B,
-            StateDependentFunction H, 
-            StateDependentFunction R) {
-        this(x, P, F, Q, B);
-        
-        myFnH = H;
-        myFnR = R;
-    }
-    
-    /**
-     * Uses the previous state estimate and the default motion model to produce 
-     * an estimate of the current state.
-     * @param u the current control input.
+     * @see KalmanFilter#predict(Jama.Matrix)
      */
     @Override
     public void predict(RealMatrix u) {
-        RealMatrix F = myF;
-        RealMatrix Q = myQ;
-        RealMatrix B = myB;
-        
-        if (myFnF != null) {
-            myFnF.eval(x);
-        }
-        
-        if (myFnQ != null) {
-            myFnQ.eval(x);
-        }
-        
-        if (myFnB != null) {
-            myFnB.eval(x);
-        }
-        
-        predict(F, Q, B, u);
-    }
-    
-    /**
-     * @see KalmanFilter#predict(Jama.Matrix, Jama.Matrix, Jama.Matrix, Jama.Matrix)
-     */
-//    public void predict(StateDependentFunction F,
-//            StateDependentFunction Q,
-//            StateDependentFunction B,
-//            RealMatrix u) {
-//        predict(F.eval(x), Q.eval(x), B.eval(x), u);
-//    }
-    
-    /**
-     * @see KalmanFilter#predict(Jama.Matrix, Jama.Matrix, Jama.Matrix, Jama.Matrix)
-     */
-//    public void predict(StateDependentFunction F,
-//            StateDependentFunction Q,
-//            RealMatrix B,
-//            RealMatrix u) {
-//        predict(F.eval(x), Q.eval(x), B, u);
-//    }
-    
-    /**
-     * @see KalmanFilter#predict(Jama.Matrix, Jama.Matrix, Jama.Matrix, Jama.Matrix)
-     */
-//    public void predict(StateDependentFunction F,
-//            RealMatrix Q,
-//            StateDependentFunction B,
-//            RealMatrix u) {
-//        predict(F.eval(x), Q, B.eval(x), u);
-//    }
-    
-    /**
-     * @see KalmanFilter#predict(Jama.Matrix, Jama.Matrix, Jama.Matrix, Jama.Matrix)
-     */
-    public void predict(StateDependentFunction F, 
-            RealMatrix Q,
-            RealMatrix B,
-            RealMatrix u) {
-        predict(F.eval(x), Q, B, u);
-    }
-    
-    /**
-     * @see KalmanFilter#predict(Jama.Matrix, Jama.Matrix, Jama.Matrix, Jama.Matrix)
-     */
-    public void predict(RealMatrix F,
-            StateDependentFunction Q, 
-            StateDependentFunction B, 
-            RealMatrix u) {
-        predict(F, Q.eval(x), B.eval(x), u);
-    }
-    
-    /**
-     * @see KalmanFilter#predict(Jama.Matrix, Jama.Matrix, Jama.Matrix, Jama.Matrix)
-     */
-    public void predict(RealMatrix F,
-            StateDependentFunction Q, 
-            RealMatrix B,
-            RealMatrix u) {
-        predict(F, Q.eval(x), B, u);
-    }
-    
-    /**
-     * @see KalmanFilter#predict(Jama.Matrix, Jama.Matrix, Jama.Matrix, Jama.Matrix)
-     */
-    public void predict(RealMatrix F,
-            RealMatrix Q,
-            StateDependentFunction B, 
-            RealMatrix u) {
-        predict(F, Q, B.eval(x), u);
-    }
-    
-    /**
-     * @see KalmanFilter#predict(Jama.Matrix, Jama.Matrix, Jama.Matrix, Jama.Matrix) 
-     */
-    @Override
-    public void predict(RealMatrix F, RealMatrix Q, RealMatrix B, RealMatrix u) {
-        super.predict(F, Q, B, u);
-        updateMatrices();
-    }
+        _F = F(_x);
+        _Q = Q(_x);
+        _B = B(_x);
 
+        predict(u);
+    }
+    
     /**
      * @see KalmanFilter#update(Jama.Matrix) 
      */
     @Override
     public void update(RealMatrix z) {
-        RealMatrix H = myH;
-        RealMatrix R = myR;
+        _H = H(_x);
+        _R = R(_x);
         
-        if (myFnH != null) {
-            myFnH.eval(x);
-        }
-        
-        if (myFnR != null) {
-            myFnR.eval(x);
-        }
-        
-        update(H, R, z);
-    }
-    
-    /**
-     * @see KalmanFilter#update(Jama.Matrix, Jama.Matrix, Jama.Matrix) 
-     */
-    public void update(StateDependentFunction H, 
-            StateDependentFunction R, 
-            RealMatrix z) {
-        update(H.eval(x), R.eval(x), z);
-    }
-    
-    /**
-     * @see KalmanFilter#update(Jama.Matrix, Jama.Matrix, Jama.Matrix) 
-     */
-    public void update(StateDependentFunction H, 
-            RealMatrix R,
-            RealMatrix z) {
-        update(H.eval(x), R, z);
-    }
-    
-    /**
-     * @see KalmanFilter#update(Jama.Matrix, Jama.Matrix, Jama.Matrix) 
-     */
-    public void update(RealMatrix H,
-            StateDependentFunction R, 
-            RealMatrix z) {
-        update(H, R.eval(x), z);
-    }
-    
-    /**
-     * @see KalmanFilter#update(Jama.Matrix, Jama.Matrix, Jama.Matrix) 
-     */
-    @Override
-    public void update(RealMatrix H, RealMatrix R, RealMatrix z) {
-        super.update(H, R, z);
-        updateMatrices();
-    }
-    
-    /**
-     * Internal function that caches the last computed model matrices and 
-     * stores them in the fields inherited by the KalmanFilter.
-     */
-    protected void updateMatrices() {
-        if (myFnF != null) {
-            myF = myFnF.eval(x);
-        }
-        
-        if (myFnQ != null) {
-            myQ = myFnQ.eval(x);
-        }
-        
-        if (myFnB != null) {
-            myB = myFnB.eval(x);
-        }
-        
-        if (myFnH != null) {
-            myH = myFnH.eval(x);
-        }
-        
-        if (myFnR != null) {
-            myR = myFnR.eval(x);
-        }
+        update(z);
     }
     
     /**
@@ -310,86 +117,5 @@ public class ExtendedKalmanFilter extends KalmanFilter {
     @Override
     public void setState(RealMatrix x) {
         super.setState(x);
-        updateMatrices();
-    }
-    
-    /**
-     * Sets the default process model.
-     * @param F the new process model. 
-     */
-    public void setProcessModelFn(StateDependentFunction F) {
-        this.myFnF = F;
-    }
-    
-    /**
-     * Gets the default process model.
-     * @return the default process model.
-     */
-    public StateDependentFunction getProcessModelFn() {
-        return myFnF;
-    }
-    
-    /**
-     * Sets the default process noise.
-     * @param Q the new process noise.
-     */
-    public void setProcessNoiseFn(StateDependentFunction Q) {
-        this.myFnQ = Q;
-    }
-    
-    /**
-     * Gets the default process noise.
-     * @return the default process noise.
-     */
-    public StateDependentFunction getProcessNoiseFn() {
-        return myFnQ;
-    }
-    
-    /**
-     * Sets the default control model.
-     * @param B the new control model.
-     */
-    public void setControlModelFn(StateDependentFunction B) {
-        this.myFnB = B;
-    }
-    
-    /**
-     * Gets the default control model.
-     * @return the default control model.
-     */
-    public StateDependentFunction getControlModelFn() {
-        return myFnB;
-    }
-    
-    /**
-     * Sets the default observation model.
-     * @param H the new observation model.
-     */
-    public void setObsModelFn(StateDependentFunction H) {
-        this.myFnH = H;
-    }
-    
-    /**
-     * Gets the default observation model.
-     * @return the default observation model.
-     */
-    public StateDependentFunction getObsModelFn() {
-        return myFnH;
-    }
-    
-    /**
-     * Sets the default observation noise.
-     * @param R the new observation noise.
-     */
-    public void setObsNoiseFn(StateDependentFunction R) {
-        this.myFnR = R;
-    }
-    
-    /**
-     * Gets the default observation noise.
-     * @return the default observation noise.
-     */
-    public StateDependentFunction getObsNoiseFn() {
-        return myFnR;
     }
 }
