@@ -36,6 +36,7 @@ import org.apache.commons.math.linear.RealMatrix;
  * Note that directly using the "set" accessors to the model and observation 
  * matrices will have no effect, as these matrices are now generated via the
  * provided linearization functions.
+ * 
  * @author Prasanna Velagapudi <pkv@cs.cmu.edu>
  */
 public abstract class ExtendedKalmanFilter extends KalmanFilter {
