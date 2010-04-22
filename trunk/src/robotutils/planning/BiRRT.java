@@ -128,7 +128,30 @@ public abstract class BiRRT<State, Action> {
         return path;
     }
 
-    public List plan(State start, State goal, int iterations) {
+    /**
+     * Executes a BiRRT search from the provide start to the provided goal.
+     * This version uses the default number of iterations.
+     *
+     * @see BiRRT#DEFAULT_ITERATION_LIMIT
+     * @see BiRRT#plan(java.lang.Object, java.lang.Object, int)
+     *
+     * @param start the desired initial state
+     * @param goal the desired final state
+     * @return a list of state/action tuples, or an empty list on failure.
+     */
+    public List plan(State start, State goal) {
+        return plan(start, goal, DEFAULT_ITERATION_LIMIT);
+    }
+
+    /**
+     * Executes a BiRRT search from the provide start to the provided goal.
+     * 
+     * @param start the desired initial state
+     * @param goal the desired final state
+     * @param iterations the number of iterations until terminating with failure.
+     * @return a list of state/action tuples, or an empty list on failure.
+     */
+    public List<Node> plan(State start, State goal, int iterations) {
 
         // Create the start tree and add the starting state
         List<Node> tStart = new ArrayList();
