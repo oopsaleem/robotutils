@@ -401,7 +401,7 @@ public abstract class DStarLite<State> {
      * this will return an empty list.
      * @return a list of states from start to goal
      */
-    public List<State> search() {
+    public List<State> plan() {
 
         LinkedList<State> path = new LinkedList<State>();
         State s = _start;
