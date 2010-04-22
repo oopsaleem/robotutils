@@ -28,6 +28,7 @@
 package robotutils.planning;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -101,56 +102,73 @@ public abstract class BiRRT<State, Action> {
     /**
      * Generates a path from two tree lists in a BiRRT.  Assumes that the last
      * node in the A tree was the one that matched.
-     * @param tA the start tree (rooted at the starting node)
-     * @param tB the goal tree (rooted at the goal node)
+     * @param tStart the start tree (rooted at the starting node)
+     * @param tGoal the goal tree (rooted at the goal node)
      * @return a list of nodes that connect the two trees.
      */
-    private List<Node> path(List<Node> tA, List<Node> tB) {
+    private List<Node> path(List<Node> tStart, List<Node> tGoal) {
         
         LinkedList<Node> path = new LinkedList<Node>();
 
         // Add path to starting node
-        Node nA = tA.get(tA.size() - 1);
+        Node nA = tStart.get(tStart.size() - 1);
         path.add(nA);
         while (nA._parent > 0) {
-            nA = tB.get(nA._parent);
+            nA = tGoal.get(nA._parent);
             path.addFirst(nA);
         }
 
         // Add path to ending node
-        Node nB = tB.get(tB.size() - 1);
+        Node nB = tGoal.get(tGoal.size() - 1);
         while (nB._parent > 0) {
-            nB = tB.get(nB._parent);
+            nB = tGoal.get(nB._parent);
             path.addLast(nB);
         }
 
         return path;
     }
 
-    public List plan(State init, State goal, int iterations) {
+    public List plan(State start, State goal, int iterations) {
 
-        List<Node> tA = new ArrayList();
-        tA.add(new Node(init, null, -1));
+        // Create the start tree and add the starting state
+        List<Node> tStart = new ArrayList();
+        tStart.add(new Node(start, null, -1));
 
-        List<Node> tB = new ArrayList();
-        tB.add(new Node(goal, null, -1));
+        // Create the goal tree and add the goal state
+        List<Node> tGoal = new ArrayList();
+        tGoal.add(new Node(goal, null, -1));
 
+        // Assign the start and goal trees to "A" and "B"
+        List<Node> tA = tStart;
+        List<Node> tB = tGoal;
+
+        // Iterate until limit is reached
         for (int k = 0; k < iterations; k++) {
-            State xRand = randomState();
-            State xNew = null;
 
+            // Pick a random state using the generating function
+            State xRand = randomState();
+
+            // Attempt to extend the "A" tree toward the random state
             if (!(extend(tA, xRand) == TRAPPED)) {
+
+                // Get the new state that was added to the "A" tree
+                State xNew = tA.get(tA.size() - 1)._state;
+
+                // Attempt to extend the "B" tree to reach this new node
                 if (extend(tB, xNew) == REACHED) {
-                    return path(tA, tB);
+
+                    // If we succeeded, reconstruct this path
+                    return path(tStart, tGoal);
                 }
             }
 
+            // Switch the "A" and "B" trees to expand the other one
             // SWAP(Ta, Tb);
             List<Node> tmp = tA;
             tA = tB;
             tB = tmp;
         }
 
-        return null;
+        return Collections.emptyList();
     }
 }
