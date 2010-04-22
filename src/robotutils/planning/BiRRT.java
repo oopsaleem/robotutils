@@ -45,27 +45,43 @@ public abstract class BiRRT<State, Action> {
     public static int ADVANCED = -1;
     public static int REACHED = 0;
 
-    protected final class Node {
-        public Node(State state, Action action, int parent) {
+    public static final class Tuple<S, A> {
+
+        public final S _state;
+        public final A _action;
+
+        public Tuple(S state, A action) {
+            _state = state;
+            _action = action;
+        }
+    }
+
+    protected static final class Node<S, A> {
+
+        public final S _state;
+        public final A _action;
+        public final int _parent;
+
+        public Node(S state, A action, int parent) {
             _state = state;
             _action = action;
             _parent = parent;
         }
 
-        public final State _state;
-        public final Action _action;
-        protected final int _parent;
+        public Tuple<S,A> toTuple() {
+            return new Tuple<S, A>(_state, _action);
+        }
     }
 
     protected abstract double distance(State a, State b);
-    protected abstract Map.Entry<Action, State> newState(State x, State xNear);
+    protected abstract Tuple<State, Action> newState(State x, State xNear);
     protected abstract State randomState();
 
-    protected int nearestNeighbor(List<Node> t, State x) {
+    protected int nearestNeighbor(List<Node<State, Action> > t, State x) {
         double minDist = Double.MAX_VALUE;
         int minIdx = -1;
 
-        Node curNode = null;
+        Node<State, Action> curNode = null;
         double curDist;
 
         for (int idx = 0; idx < t.size(); idx++) {
@@ -82,7 +98,7 @@ public abstract class BiRRT<State, Action> {
         return minIdx;
     }
 
-    protected int extend(List<Node> t, State x) {
+    protected int extend(List<Node<State, Action> > t, State x) {
         int iNear = nearestNeighbor(t, x);
 
         Node xuNew = sampler.extend(t.get(iNear).state, x);
@@ -101,28 +117,29 @@ public abstract class BiRRT<State, Action> {
 
     /**
      * Generates a path from two tree lists in a BiRRT.  Assumes that the last
-     * node in the A tree was the one that matched.
+     * node in the trees are the ones that matched.
      * @param tStart the start tree (rooted at the starting node)
      * @param tGoal the goal tree (rooted at the goal node)
-     * @return a list of nodes that connect the two trees.
+     * @return a list of states/actions that connect the two trees.
      */
-    private List<Node> path(List<Node> tStart, List<Node> tGoal) {
-        
-        LinkedList<Node> path = new LinkedList<Node>();
+    private List<Tuple<State, Action> > path( List<Node<State, Action> > tStart, List<Node<State, Action> > tGoal) {
+
+        // Create a linked list to assemble from both ends
+        LinkedList<Tuple<State, Action> > path = new LinkedList();
 
         // Add path to starting node
         Node nA = tStart.get(tStart.size() - 1);
-        path.add(nA);
+        path.add(nA.toTuple());
         while (nA._parent > 0) {
             nA = tGoal.get(nA._parent);
-            path.addFirst(nA);
+            path.addFirst(nA.toTuple());
         }
 
         // Add path to ending node
         Node nB = tGoal.get(tGoal.size() - 1);
         while (nB._parent > 0) {
             nB = tGoal.get(nB._parent);
-            path.addLast(nB);
+            path.addLast(nB.toTuple());
         }
 
         return path;
@@ -139,7 +156,7 @@ public abstract class BiRRT<State, Action> {
      * @param goal the desired final state
      * @return a list of state/action tuples, or an empty list on failure.
      */
-    public List plan(State start, State goal) {
+    public List<Tuple<State,Action> > plan(State start, State goal) {
         return plan(start, goal, DEFAULT_ITERATION_LIMIT);
     }
 
@@ -151,19 +168,19 @@ public abstract class BiRRT<State, Action> {
      * @param iterations the number of iterations until terminating with failure.
      * @return a list of state/action tuples, or an empty list on failure.
      */
-    public List<Node> plan(State start, State goal, int iterations) {
+    public List<Tuple<State,Action> > plan(State start, State goal, int iterations) {
 
         // Create the start tree and add the starting state
-        List<Node> tStart = new ArrayList();
+        List<Node<State,Action> > tStart = new ArrayList();
         tStart.add(new Node(start, null, -1));
 
         // Create the goal tree and add the goal state
-        List<Node> tGoal = new ArrayList();
+        List<Node<State,Action> > tGoal = new ArrayList();
         tGoal.add(new Node(goal, null, -1));
 
         // Assign the start and goal trees to "A" and "B"
-        List<Node> tA = tStart;
-        List<Node> tB = tGoal;
+        List<Node<State,Action> > tA = tStart;
+        List<Node<State,Action> > tB = tGoal;
 
         // Iterate until limit is reached
         for (int k = 0; k < iterations; k++) {
@@ -187,7 +204,7 @@ public abstract class BiRRT<State, Action> {
 
             // Switch the "A" and "B" trees to expand the other one
             // SWAP(Ta, Tb);
-            List<Node> tmp = tA;
+            List<Node<State, Action> > tmp = tA;
             tA = tB;
             tB = tmp;
         }
