@@ -33,17 +33,49 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
+ * This class implements an unoptimized BiRRT algorithm (bidirectional rapidly
+ * exploring random tree) as described in [LaValle 2001]. RRTs attempt to
+ * rapidly and uniformly explore state space.  They are well-suited to high
+ * dimensional planning problems and problems with differential constraints.
+ *
+ * The BiRRT expands two trees, one from the start state and one from the goal
+ * state, terminating when the two trees meet at any intermediate location.  It
+ * alternates between growing the trees toward each other and expanding the
+ * trees to cover the state space.
+ * 
+ * Source: S.M. LaValle and J.J. Kuffner. Randomized kinodynamic planning.
+ * International Journal of Robotics Research, 20(5):378-400, May 2001.
  *
  * @author Prasanna Velagapudi <pkv@cs.cmu.edu>
  */
 public abstract class BiRRT<State, Action> {
-    
+
+    /**
+     * The default number of tree expansions before a search returns failure.
+     */
     public static int DEFAULT_ITERATION_LIMIT = 2000;
 
+    /**
+     * Indicates that a tree was expanded toward some state.
+     */
     public static int ADVANCED = -1;
+
+    /**
+     * Indicates that a tree was able to reach some state.
+     */
     public static int REACHED = 0;
+
+    /**
+     * Indicates that a tree was unable to progress toward some state.
+     */
     public static int TRAPPED = -2;
 
+    /**
+     * Storage class for state/action pairs.
+     *
+     * @param <S> the state representation
+     * @param <A> the action representation
+     */
     public static final class Tuple<S, A> {
 
         public final S _state;
@@ -59,6 +91,12 @@ public abstract class BiRRT<State, Action> {
         }
     }
 
+    /**
+     * Storage class for nodes in the search trees.
+     * 
+     * @param <S> the state representation
+     * @param <A> the action representation
+     */
     protected static final class Node<S, A> {
 
         public final S _state;
