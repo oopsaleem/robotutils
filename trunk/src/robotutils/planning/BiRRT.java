@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 /**
  *
@@ -53,6 +52,10 @@ public abstract class BiRRT<State, Action> {
         public Tuple(S state, A action) {
             _state = state;
             _action = action;
+        }
+
+        public Node<S,A> toNode(int parent) {
+            return new Node<S, A>(_state, _action, parent);
         }
     }
 
@@ -77,7 +80,7 @@ public abstract class BiRRT<State, Action> {
     protected abstract Tuple<State, Action> newState(State x, State xNear);
     protected abstract State randomState();
 
-    protected int nearestNeighbor(List<Node<State, Action> > t, State x) {
+    protected int nearestNeighbor(State x, List<Node<State, Action> > t) {
         double minDist = Double.MAX_VALUE;
         int minIdx = -1;
 
@@ -98,13 +101,35 @@ public abstract class BiRRT<State, Action> {
         return minIdx;
     }
 
+    /**
+     * Extends a given search tree towards the specified states, adding a new
+     * node that either reached the given state, or tries to provide a nearer
+     * state, using the newState() function.
+     *
+     * @see BiRRT#newState(java.lang.Object, java.lang.Object)
+     * @see BiRRT#ADVANCED
+     * @see BiRRT#REACHED
+     * @see BiRRT#TRAPPED
+     *
+     * @param t the tree to be expanded
+     * @param x the state toward which to expand the tree
+     * @return a code indicating if the state was reached, if a new nearby state
+     * was reached, or if no closer state could be found.
+     */
     protected int extend(List<Node<State, Action> > t, State x) {
-        int iNear = nearestNeighbor(t, x);
 
-        Node xuNew = sampler.extend(t.get(iNear).state, x);
+        // Find the closest existing state in the tree
+        int iNear = nearestNeighbor(x, t);
+        State xNear = t.get(iNear)._state;
+
+        // Use the newState function to construct a new edge toward the state
+        Tuple<State, Action> xuNew = newState(x, xNear);
+
+        // If we got a state/action, add it to the tree
         if (xuNew != null) {
-            t.add(new Node(xuNew.state, xuNew.action, iNear));
+            t.add(xuNew.toNode(iNear));
 
+            // Did we reach the target state or just expand toward it?
             if (xuNew._state.equals(x)) {
                 return REACHED;
             } else {
@@ -112,6 +137,7 @@ public abstract class BiRRT<State, Action> {
             }
         }
 
+        // If we didn't get a state/action, report failure
         return TRAPPED;
     }
 
@@ -127,7 +153,7 @@ public abstract class BiRRT<State, Action> {
         // Create a linked list to assemble from both ends
         LinkedList<Tuple<State, Action> > path = new LinkedList();
 
-        // Add path to starting node
+        // Iteratively build path from starting node
         Node nA = tStart.get(tStart.size() - 1);
         path.add(nA.toTuple());
         while (nA._parent > 0) {
@@ -135,7 +161,7 @@ public abstract class BiRRT<State, Action> {
             path.addFirst(nA.toTuple());
         }
 
-        // Add path to ending node
+        // Iteratively build path to ending node
         Node nB = tGoal.get(tGoal.size() - 1);
         while (nB._parent > 0) {
             nB = tGoal.get(nB._parent);
