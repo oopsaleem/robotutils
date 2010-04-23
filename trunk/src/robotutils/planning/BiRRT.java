@@ -80,24 +80,39 @@ public abstract class BiRRT<State, Action> {
     protected abstract Tuple<State, Action> newState(State x, State xNear);
     protected abstract State randomState();
 
+    /**
+     * Do a simple linear search for the closest existing node in the tree to
+     * a specified state, using the specified distance function.
+     *
+     * @see BiRRT#distance(java.lang.Object, java.lang.Object) 
+     *
+     * @param x the state to try to approach
+     * @param t a tree of existing nodes
+     * @return the tree index of the closest existing node
+     */
     protected int nearestNeighbor(State x, List<Node<State, Action> > t) {
+
+        // Initialize to worst case values
         double minDist = Double.MAX_VALUE;
         int minIdx = -1;
 
+        // Initialize some temp variable to store current node
         Node<State, Action> curNode = null;
         double curDist;
 
+        // Iterate through tree, looking for closest node
         for (int idx = 0; idx < t.size(); idx++) {
             curNode = t.get(idx);
             curDist = distance(curNode._state, x);
 
+            // If this is the closest node, record index and distance
             if (curDist < minDist) {
                 minIdx = idx;
                 minDist = curDist;
             }
         }
 
-        assert(minIdx >= 0);
+        // Return index of the closest node in the tree
         return minIdx;
     }
 
