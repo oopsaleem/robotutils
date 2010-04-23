@@ -31,53 +31,14 @@ import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.util.Arrays;
 import org.jgrapht.graph.DefaultWeightedEdge;
-import org.jgrapht.graph.GraphDelegator;
 import org.jgrapht.graph.SimpleWeightedGraph;
 import org.jgrapht.graph.UnmodifiableGraph;
-import robotutils.planning.EdgeDistance;
-import robotutils.planning.NodeDistance;
 
 /**
  * Helper class that converts GridMaps into a variety of useful formats.
  * @author Prasanna Velagapudi <pkv@cs.cmu.edu>
  */
 public class GridMapUtils {
-
-    public static class ManhattanDistance implements NodeDistance<Coordinate> {
-
-        public double distance(Coordinate a, Coordinate b) {
-            double dist = 0.0;
-
-            for (int i = 0; i < a.dims(); i++) {
-                dist += Math.abs(b.get(i) - a.get(i));
-            }
-
-            return dist;
-        }
-
-    }
-
-    public static class GraphDistance<E> implements EdgeDistance<E> {
-
-        GraphDelegator<?, E> _graph;
-
-        public GraphDistance(GraphDelegator<?,E> graph) {
-            _graph = graph;
-        }
-
-        public double distance(E a) {
-            return _graph.getEdgeWeight(a);
-        }
-
-    }
-
-    public static class ConstantDistance<E> implements EdgeDistance<E> {
-
-        public double distance(E a) {
-            return 1.0;
-        }
-
-    }
 
     public static UnmodifiableGraph<Coordinate, DefaultWeightedEdge> toGraph(GridMap map) {
 
