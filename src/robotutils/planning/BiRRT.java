@@ -40,9 +40,9 @@ public abstract class BiRRT<State, Action> {
     
     public static int DEFAULT_ITERATION_LIMIT = 2000;
 
-    public static int TRAPPED = -2;
     public static int ADVANCED = -1;
     public static int REACHED = 0;
+    public static int TRAPPED = -2;
 
     public static final class Tuple<S, A> {
 
@@ -76,12 +76,37 @@ public abstract class BiRRT<State, Action> {
         }
     }
 
+    /**
+     * Computes the distance between two states according to some metric.
+     * The metric must be <b>transitive</b> and <b>commutative</b>.
+     *
+     * @param a some state
+     * @param b some other state
+     * @return the distance between the two states
+     */
     protected abstract double distance(State a, State b);
+
+    /**
+     * Generates a state/action pair that moves from the "near" state toward the 
+     * sampled state, and returns the <i>sampled</i> state in the state/action
+     * pair if the action gets <i>sufficiently</i> close to the state.
+     *
+     * @param x a randomly sampled state
+     * @param xNear a nearby reachable state (already in the search tree)
+     * @return a state/action pair where executing the returned action will
+     * result in moving from the nearby state to the returned state
+     */
     protected abstract Tuple<State, Action> newState(State x, State xNear);
+
+    /**
+     * Randomly generate a state to try and expand toward.
+     * 
+     * @return a randomly generated state
+     */
     protected abstract State randomState();
 
     /**
-     * Do a simple linear search for the closest existing node in the tree to
+     * A simple linear search for the closest existing node in the tree to
      * a specified state, using the specified distance function.
      *
      * @see BiRRT#distance(java.lang.Object, java.lang.Object) 
@@ -159,6 +184,7 @@ public abstract class BiRRT<State, Action> {
     /**
      * Generates a path from two tree lists in a BiRRT.  Assumes that the last
      * node in the trees are the ones that matched.
+     * 
      * @param tStart the start tree (rooted at the starting node)
      * @param tGoal the goal tree (rooted at the goal node)
      * @return a list of states/actions that connect the two trees.
