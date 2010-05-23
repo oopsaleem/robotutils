@@ -28,8 +28,6 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -57,9 +55,9 @@ public class CarmenReader {
     }
 
     static public abstract class Message {
-        double ipcTimestamp;
-        String ipcHostname;
-        double loggerTimestamp;
+        public double ipcTimestamp;
+        public String ipcHostname;
+        public double loggerTimestamp;
 
         void parse(String[] args) {
             ipcTimestamp = Double.parseDouble(args[args.length - 3]);
@@ -69,8 +67,8 @@ public class CarmenReader {
     }
 
     static public class Param extends Message {
-        String name;
-        String value;
+        public String name;
+        public String value;
 
         @Override
         void parse(String[] args) {
@@ -87,7 +85,7 @@ public class CarmenReader {
     }
 
     static public class Sync extends Message {
-        String tagName;
+        public String tagName;
 
         @Override
         void parse(String[] args) {
@@ -103,10 +101,9 @@ public class CarmenReader {
     }
 
     static public class Odom extends Message {
-        Pose2D pose;
-        double tv;
-        double rv;
-        double accel;
+        public Pose2D pose;
+        public Pose2D vel;
+        public double accel;
 
         @Override
         void parse(String[] args) {
@@ -118,21 +115,25 @@ public class CarmenReader {
                     Double.parseDouble(args[3])
                     );
 
-            tv = Double.parseDouble(args[4]);
-            rv = Double.parseDouble(args[5]);
+            vel = new Pose2D(
+                    0.0,
+                    Double.parseDouble(args[4]),
+                    Double.parseDouble(args[5])
+                    );
+
             accel = Double.parseDouble(args[6]);
         }
 
         @Override
         public String toString() {
-            return "ODOM [" + pose + ", " + tv + ", " + rv + ", " + accel + "] @ " + loggerTimestamp;
+            return "ODOM [" + pose + ", " + vel + ", " + accel + "] @ " + loggerTimestamp;
         }
     }
 
     static public class FLaser extends Message {
-        double[] readings;
-        Pose2D pose;
-        Pose2D odom;
+        public double[] readings;
+        public Pose2D pose;
+        public Pose2D odom;
 
         @Override
         void parse(String[] args) {
@@ -165,9 +166,9 @@ public class CarmenReader {
     }
     
     static public class RLaser extends Message {
-        double[] readings;
-        Pose2D pose;
-        Pose2D odom;
+        public double[] readings;
+        public Pose2D pose;
+        public Pose2D odom;
 
         @Override
         void parse(String[] args) {
