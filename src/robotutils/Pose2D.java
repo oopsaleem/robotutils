@@ -99,7 +99,7 @@ public class Pose2D implements Cloneable, Serializable {
 
     @Override
     public String toString() {
-        return "{" + x + ", " + y + "}";
+        return "{" + x + ", " + y + ", " + theta + "}";
     }
 
     @Override
