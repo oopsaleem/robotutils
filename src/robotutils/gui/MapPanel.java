@@ -26,6 +26,7 @@ import javax.swing.event.MouseInputListener;
 /**
  * A display widget that can display a map background and icon overlays.  It
  * support mouse-based panning and zooming.
+ * 
  * @author pkv
  */
 public class MapPanel extends JPanel {

@@ -33,14 +33,13 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Scanner;
 import java.util.regex.Pattern;
 import robotutils.Pose3D;
 import robotutils.filters.OccupancyMap;
 
 /**
  * Contains a script to load velodyne data from some random format.
+ * 
  * @author Prasanna Velagapudi <pkv@cs.cmu.edu>
  */
 public class VelodyneLoader {
