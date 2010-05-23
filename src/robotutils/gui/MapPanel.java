@@ -5,6 +5,7 @@
 
 package robotutils.gui;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -12,6 +13,7 @@ import java.awt.Image;
 import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.Shape;
+import java.awt.Stroke;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
@@ -36,15 +38,17 @@ public class MapPanel extends JPanel {
     private final LinkedHashMap<String, MapShape> _shapes = new LinkedHashMap();
 
     private final AffineTransform _mapTransform = new AffineTransform();
-    private final MapMouseListener mt = new MapMouseListener();
+    private final MapMouseListener _mt = new MapMouseListener();
+
+    private final Stroke _stroke = new BasicStroke(0.1f);
 
     private Point currPoint;
     private Point downPoint;
     
     {
-        this.addMouseListener(mt);
-        this.addMouseMotionListener(mt);
-        this.addMouseWheelListener(mt);
+        this.addMouseListener(_mt);
+        this.addMouseMotionListener(_mt);
+        this.addMouseWheelListener(_mt);
     }
 
     private class MapIcon {
@@ -143,7 +147,8 @@ public class MapPanel extends JPanel {
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D)g.create();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
+        g2.setStroke(_stroke);
+
         // Apply transform from frame coords to image coords
         if (downPoint != null && currPoint != null) {
             g2.translate(currPoint.getX() - downPoint.getX(),
