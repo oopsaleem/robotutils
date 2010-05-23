@@ -143,7 +143,7 @@ public class CarmenReader {
             readings = new double[numReadings];
 
             for (int i = 0; i < numReadings; ++i) {
-                readings[i] = Double.parseDouble(args[2] + i);
+                readings[i] = Double.parseDouble(args[2+i]);
             }
 
             pose = new Pose2D(
@@ -178,7 +178,7 @@ public class CarmenReader {
             readings = new double[numReadings];
 
             for (int i = 0; i < numReadings; ++i) {
-                readings[i] = Double.parseDouble(args[2] + i);
+                readings[i] = Double.parseDouble(args[2+i]);
             }
 
             pose = new Pose2D(
