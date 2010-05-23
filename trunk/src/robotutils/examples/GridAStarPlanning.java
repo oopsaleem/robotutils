@@ -28,6 +28,10 @@
 package robotutils.examples;
 
 import java.awt.Color;
+import java.awt.Shape;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Rectangle2D;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -47,21 +51,24 @@ import robotutils.planning.GridAStar;
  */
 public class GridAStarPlanning {
     public static Random rnd = new Random();
+    public static Shape dot = new Ellipse2D.Double(-0.5, -0.5, 1.0, 1.0);
 
     public static void main(String args[]) {
         
         // Generate a random blocky map (using cellular automata rules)
         StaticMap sm = GridMapGenerator.createRandomMazeMap2D(100, 100);
+        Rectangle2D mapBounds = new Rectangle2D.Double(0.0, 0.0, sm.size(0), sm.size(1));
 
         // Create a display panel to draw the results
         MapPanel mp = new MapPanel();
-        mp.setMapImage(GridMapUtils.toImage(sm));
-        mp.setMapRect(0.0, sm.size(0), 0.0, sm.size(1));
+        mp.setIcon("map", GridMapUtils.toImage(sm), mapBounds);
 
         JFrame jf = new JFrame("Map");
         jf.setBounds(10, 10, 810, 610);
         jf.getContentPane().add(mp);
         jf.setVisible(true);
+
+        mp.setView(mapBounds);
 
         // Find an unoccupied start location
         int[] start = new int[sm.dims()];
@@ -81,8 +88,10 @@ public class GridAStarPlanning {
 
         // Print and display start and goal locations
         System.out.println("Picked endpoints: " + Arrays.toString(start) + "->" + Arrays.toString(goal));
-        mp.setDotIcon("Start", Color.GREEN, 21, 21, (double)start[0] + 0.5, (double)start[1] + 0.5, 0.05);
-        mp.setDotIcon("Goal", Color.RED, 21, 21, (double)goal[0] + 0.5, (double)goal[1] + 0.5, 0.05);
+        mp.setShape("Start", dot, AffineTransform.getTranslateInstance(
+                (double)start[0] + 0.5, (double)start[1] + 0.5), Color.GREEN);
+        mp.setShape("Goal", dot, AffineTransform.getTranslateInstance(
+                (double)goal[0] + 0.5, (double)goal[1] + 0.5), Color.RED);
 
         // Perform A* search
         GridAStar astar = new GridAStar(sm);
@@ -96,7 +105,8 @@ public class GridAStarPlanning {
 
             for (int i = 1; i < path.size() - 1; i++) {
                 Coordinate c = path.get(i);
-                mp.setDotIcon("p" + i, Color.BLUE, 11, 11, c.get(0) + 0.5, c.get(1) + 0.5, 0.05);
+                mp.setShape("p" + i, dot, AffineTransform.getTranslateInstance(
+                    c.get(0) + 0.5, c.get(1) + 0.5), Color.CYAN);
             }
         }
     }
