@@ -62,8 +62,10 @@ public class MapPanel extends JPanel {
     }
 
     public void setView(Rectangle2D bounds) {
+        if ((this.getWidth() == 0) || (this.getHeight() == 0)) return;
+
         _mapTransform.setToIdentity();
-        _mapTransform.scale(bounds.getWidth(), bounds.getHeight());
+        _mapTransform.scale(this.getWidth()/bounds.getWidth(), this.getHeight()/bounds.getHeight());
         _mapTransform.translate(-bounds.getMinX(), -bounds.getMinY());
     }
 

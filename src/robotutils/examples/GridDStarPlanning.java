@@ -64,9 +64,11 @@ public class GridDStarPlanning {
         mp.setIcon("map", GridMapUtils.toImage(sm), mapBounds);
 
         JFrame jf = new JFrame("Map");
-        jf.setBounds(10, 10, 810, 610);
+        jf.setBounds(10, 10, 600, 610);
         jf.getContentPane().add(mp);
         jf.setVisible(true);
+
+        mp.setView(mapBounds);
 
         // Find an unoccupied start location
         int[] start = new int[sm.dims()];
