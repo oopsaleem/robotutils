@@ -66,6 +66,8 @@ public class MapPanel extends JPanel {
     /**
      * Sets the boundary points for the window in terms of the map coordinates.
      * These values can be reversed to flip the map view (e.g. left &gt right).
+     * This function will only have an effect after the panel initialized to a
+     * non-zero size.
      *
      * @param left the map coordinate of the left side of the window
      * @param right the map coordinate of the right side of the window
@@ -77,11 +79,6 @@ public class MapPanel extends JPanel {
     }
 
     /**
-     * Sets the boundary points for the window in terms of the map coordinates.
-     * These values can be reversed to flip the map view (e.g. left &gt right).
-     * This function will only have an effect after the panel initialized to a
-     * non-zero size.
-     * 
      * @see MapPanel#setView(double, double, double, double) 
      *
      * @param bounds A rectangle representing the boundary of the window
@@ -95,10 +92,6 @@ public class MapPanel extends JPanel {
     }
 
     /**
-     * Sets up a named shape to be drawn using the provided transformation.  If
-     * the shape is already transformed correctly, the identity transform can be
-     * passed in, or null can be passed in.
-     *
      * @see MapPanel#setShape(java.lang.String, java.awt.Shape, java.awt.geom.AffineTransform, java.awt.Color, java.awt.Stroke)
      *
      * @param name a name for the shape
@@ -110,10 +103,6 @@ public class MapPanel extends JPanel {
     }
 
     /**
-     * Sets up a named shape to be drawn using the provided transformation.  If
-     * the shape is already transformed correctly, the identity transform can be
-     * passed in, or null can be passed in.
-     * 
      * @see MapPanel#setShape(java.lang.String, java.awt.Shape, java.awt.geom.AffineTransform, java.awt.Color, java.awt.Stroke)
      *
      * @param name a name for the shape
@@ -126,10 +115,6 @@ public class MapPanel extends JPanel {
     }
 
     /**
-     * Sets up a named shape to be drawn using the provided transformation.  If
-     * the shape is already transformed correctly, the identity transform can be
-     * passed in, or null can be passed in.
-     *
      * @see MapPanel#setShape(java.lang.String, java.awt.Shape, java.awt.geom.AffineTransform, java.awt.Color, java.awt.Stroke)
      *
      * @param name a name for the shape
@@ -168,6 +153,16 @@ public class MapPanel extends JPanel {
         this.repaint();
     }
 
+    /**
+     * Sets up a named icon to be drawn using the provided boundaries.  The icon
+     * will be drawn such that its boundaries match the rectangle exactly.  If
+     * the rectangle has negative width or height, the icon will be flipped
+     * accordingly.
+     *
+     * @param name a name for the icon
+     * @param img an image for the icon
+     * @param bounds a box specifying the map coordinates of the icon's edges
+     */
     public void setIcon(String name, Image img, Rectangle2D bounds) {
         MapIcon mi = getIcon(name);
         mi.icon = img;
@@ -179,6 +174,15 @@ public class MapPanel extends JPanel {
         this.repaint();
     }
 
+    /**
+     * Sets up a named icon to be drawn using the provided transformation.  The
+     * specified transform should be from the map frame to the image frame (in
+     * pixels).
+     *
+     * @param name a name for the icon
+     * @param img an image for the icon
+     * @param xform a transform from map coordinates to image coordinates
+     */
     public void setIcon(String name, Image img, AffineTransform xform) {
         MapIcon mi = getIcon(name);
         mi.icon = img;
@@ -210,6 +214,11 @@ public class MapPanel extends JPanel {
         }
     }
 
+    /**
+     * Deletes a particular named icon from the panel.
+     *
+     * @param name the name of the icon to delete
+     */
     public void removeIcon(String name) {
         synchronized(_icons) {
             _icons.remove(name);
@@ -217,6 +226,11 @@ public class MapPanel extends JPanel {
         }
     }
 
+    /**
+     * Deletes a particular named shape from the panel.
+     *
+     * @param name the name of the shape to delete
+     */
     public void removeShape(String name) {
         synchronized(_shapes) {
             _shapes.remove(name);
