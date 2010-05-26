@@ -27,8 +27,10 @@
 
 package robotutils.examples;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Shape;
+import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
@@ -52,6 +54,7 @@ import robotutils.planning.GridAStar;
 public class GridAStarPlanning {
     public static Random rnd = new Random();
     public static Shape dot = new Ellipse2D.Double(-0.5, -0.5, 1.0, 1.0);
+    public static Stroke dotStroke = new BasicStroke(0.2f);
 
     public static void main(String args[]) {
         
@@ -89,9 +92,9 @@ public class GridAStarPlanning {
         // Print and display start and goal locations
         System.out.println("Picked endpoints: " + Arrays.toString(start) + "->" + Arrays.toString(goal));
         mp.setShape("Start", dot, AffineTransform.getTranslateInstance(
-                (double)start[0] + 0.5, (double)start[1] + 0.5), Color.GREEN);
+                (double)start[0] + 0.5, (double)start[1] + 0.5), Color.GREEN, dotStroke);
         mp.setShape("Goal", dot, AffineTransform.getTranslateInstance(
-                (double)goal[0] + 0.5, (double)goal[1] + 0.5), Color.RED);
+                (double)goal[0] + 0.5, (double)goal[1] + 0.5), Color.RED, dotStroke);
 
         // Perform A* search
         GridAStar astar = new GridAStar(sm);
@@ -106,7 +109,7 @@ public class GridAStarPlanning {
             for (int i = 1; i < path.size() - 1; i++) {
                 Coordinate c = path.get(i);
                 mp.setShape("p" + i, dot, AffineTransform.getTranslateInstance(
-                    c.get(0) + 0.5, c.get(1) + 0.5), Color.CYAN);
+                    c.get(0) + 0.5, c.get(1) + 0.5), Color.CYAN, dotStroke);
             }
         }
     }
