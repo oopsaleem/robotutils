@@ -33,14 +33,14 @@ import javax.swing.event.MouseInputListener;
  */
 public class MapPanel extends JPanel {
     public static final double SCALE_FACTOR = 1.2;
+    public static final Stroke DEFAULT_STROKE = new BasicStroke(0.5f);
+    public static final Color DEFAULT_COLOR = Color.BLACK;
 
     private final LinkedHashMap<String, MapIcon> _icons = new LinkedHashMap();
     private final LinkedHashMap<String, MapShape> _shapes = new LinkedHashMap();
 
     private final AffineTransform _mapTransform = new AffineTransform();
     private final MapMouseListener _mt = new MapMouseListener();
-
-    private final Stroke _stroke = new BasicStroke(0.1f);
 
     private Point currPoint;
     private Point downPoint;
@@ -58,14 +58,34 @@ public class MapPanel extends JPanel {
 
     private class MapShape {
         Color color;
+        Stroke stroke;
         Shape shape;
         final AffineTransform xform = new AffineTransform();
     }
 
+    /**
+     * Sets the boundary points for the window in terms of the map coordinates.
+     * These values can be reversed to flip the map view (e.g. left &gt right).
+     *
+     * @param left the map coordinate of the left side of the window
+     * @param right the map coordinate of the right side of the window
+     * @param top the map coordinate of the top of the window
+     * @param bottom the map coordination of the bottom of the window
+     */
     public void setView(double left, double right, double top, double bottom) {
         setView(new Rectangle2D.Double(left, top, right - left, bottom - top));
     }
 
+    /**
+     * Sets the boundary points for the window in terms of the map coordinates.
+     * These values can be reversed to flip the map view (e.g. left &gt right).
+     * This function will only have an effect after the panel initialized to a
+     * non-zero size.
+     * 
+     * @see MapPanel#setView(double, double, double, double) 
+     *
+     * @param bounds A rectangle representing the boundary of the window
+     */
     public void setView(Rectangle2D bounds) {
         if ((this.getWidth() == 0) || (this.getHeight() == 0)) return;
 
@@ -74,15 +94,77 @@ public class MapPanel extends JPanel {
         _mapTransform.translate(-bounds.getMinX(), -bounds.getMinY());
     }
 
+    /**
+     * Sets up a named shape to be drawn using the provided transformation.  If
+     * the shape is already transformed correctly, the identity transform can be
+     * passed in, or null can be passed in.
+     *
+     * @see MapPanel#setShape(java.lang.String, java.awt.Shape, java.awt.geom.AffineTransform, java.awt.Color, java.awt.Stroke)
+     *
+     * @param name a name for the shape
+     * @param shape an object represeting the shape to be drawn
+     * @param xform the transformation of the shape to map coordinates
+     */
     public void setShape(String name, Shape shape, AffineTransform xform) {
-        setShape(name, shape, xform, Color.BLACK);
+        setShape(name, shape, xform, DEFAULT_COLOR);
     }
 
+    /**
+     * Sets up a named shape to be drawn using the provided transformation.  If
+     * the shape is already transformed correctly, the identity transform can be
+     * passed in, or null can be passed in.
+     * 
+     * @see MapPanel#setShape(java.lang.String, java.awt.Shape, java.awt.geom.AffineTransform, java.awt.Color, java.awt.Stroke)
+     *
+     * @param name a name for the shape
+     * @param shape an object represeting the shape to be drawn
+     * @param xform the transformation of the shape to map coordinates
+     * @param color the color with which to draw the shape
+     */
     public void setShape(String name, Shape shape, AffineTransform xform, Color color) {
+        setShape(name, shape, xform, color, DEFAULT_STROKE);
+    }
+
+    /**
+     * Sets up a named shape to be drawn using the provided transformation.  If
+     * the shape is already transformed correctly, the identity transform can be
+     * passed in, or null can be passed in.
+     *
+     * @see MapPanel#setShape(java.lang.String, java.awt.Shape, java.awt.geom.AffineTransform, java.awt.Color, java.awt.Stroke)
+     *
+     * @param name a name for the shape
+     * @param shape an object represeting the shape to be drawn
+     * @param xform the transformation of the shape to map coordinates
+     * @param stroke the stroke width to use when drawing the shape
+     */
+    public void setShape(String name, Shape shape, AffineTransform xform, Stroke stroke) {
+        setShape(name, shape, xform, DEFAULT_COLOR, stroke);
+    }
+
+    /**
+     * Sets up a named shape to be drawn using the provided transformation.  If
+     * the shape is already transformed correctly, the identity transform can be
+     * passed in, or null can be passed in.
+     *
+     * @param name a name for the shape
+     * @param shape an object represeting the shape to be drawn
+     * @param xform the transformation of the shape to map coordinates
+     * @param color the color with which to draw the shape
+     * @param stroke the stroke width to use when drawing the shape
+     */
+    public void setShape(String name, Shape shape, AffineTransform xform, Color color, Stroke stroke) {
         MapShape ms = getShape(name);
+
         ms.color = color;
-        ms.shape = xform.createTransformedShape(shape);
-        ms.xform.setTransform(xform);
+        ms.stroke = stroke;
+        
+        if (xform != null) {
+            ms.shape = xform.createTransformedShape(shape);
+            ms.xform.setTransform(xform);
+        } else {
+            ms.shape = shape;
+        }
+
         this.repaint();
     }
 
@@ -147,7 +229,6 @@ public class MapPanel extends JPanel {
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D)g.create();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.setStroke(_stroke);
 
         // Apply transform from frame coords to image coords
         if (downPoint != null && currPoint != null) {
@@ -181,9 +262,15 @@ public class MapPanel extends JPanel {
 
     private void drawShape(MapShape ms, Graphics2D g) {
         if (ms.shape == null) return;
+        
         Color c = g.getColor();
+        Stroke s = g.getStroke();
+
         g.setColor(ms.color);
+        g.setStroke(ms.stroke);
         g.draw(ms.shape);
+        
+        g.setStroke(s);
         g.setColor(c);
     }
     
