@@ -118,7 +118,7 @@ public abstract class GraphAStar<V, E> extends AStar<V> {
             V target = _graph.getEdgeTarget(edge);
 
             if ( source.equals(s) ) {
-                succs.add(_graph.getEdgeTarget(edge));
+                succs.add( target );
             } else if ( target.equals(s) ) {
                 if (_graph.containsEdge( s, source )) {
                     succs.add( source );
