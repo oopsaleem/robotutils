@@ -44,13 +44,22 @@ import org.jgrapht.Graph;
 public abstract class GraphDStar<V, E> extends DStarLite<V> {
 
     /**
-     * The map over which searches will be performed.
+     * The map over which D*-lite searches will be performed.
      */
     final Graph<V, E> _graph;
 
     /**
-     * Instantiates search over the given graph.
-     * @param map a graph where edge weights represent traversal costs
+     * Instantiates D*-lite search object over the given graph.  Because the
+     * D* algorithm creates a goal-rooted search tree, it is necessary to
+     * specify the start and goal locations ahead of time.   
+     * 
+     * The start location can be changed later using the provided update
+     * function.  The goal location is fixed since changing it would require
+     * rebuilding the tree anyway.
+     *
+     * @param graph A graph where edge weights represent traversal costs
+     * @param start The starting location in the graph (easy to update).
+     * @param goal The ending location in the graph (cannot be updated).
      */
     public GraphDStar(Graph<V, E> graph, V start, V goal) {
         super(start, goal);
@@ -58,9 +67,40 @@ public abstract class GraphDStar<V, E> extends DStarLite<V> {
     }
 
     /**
-     * A wrapper function that searches for a set of edges that yields the
-     * optimal path of vertices returned by D*.
+     * Update the start vertex of the D*-lite search.  This can be used to move
+     * the start location around without having to recompute the entire search
+     * tree.
+     *
+     * @param start The new starting location in the graph.
+     */
+    public void setStart(V start) {
+        super.updateStart(start);
+    }
+
+    /**
+     * Gets the current starting location of the search.
      * 
+     * @return The current starting location of the search.
+     */
+    public V getStart() {
+        return _start;
+    }
+
+    /**
+     * Gets the current ending location of the search.
+     *
+     * @return The current ending location of the search.
+     */
+    public V getGoal() {
+        return _goal;
+    }
+
+    /**
+     * A wrapper function that searches for a set of edges that yields the
+     * optimal path of vertices returned by D*-lite.
+     *
+     * @param start the starting vertex
+     * @param goal the ending vertex
      * @return a list of edges implementing an optimal path
      */
     public List<E> search() {
@@ -126,7 +166,7 @@ public abstract class GraphDStar<V, E> extends DStarLite<V> {
 
         return succs;
     }
-    
+
     @Override
     protected Collection<V> pred(V s) {
         Set<E> edges = _graph.edgesOf(s);
