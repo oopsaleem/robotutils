@@ -49,8 +49,9 @@ public abstract class GraphAStar<V, E> extends AStar<V> {
     final Graph<V, E> _graph;
 
     /**
-     * Instantiates A* search over the given graph.
-     * @param map A graph where edge weights represent traversal costs
+     * Instantiates A* search object over the given graph.
+     *
+     * @param graph A graph where edge weights represent traversal costs
      */
     public GraphAStar(Graph<V, E> graph) {
         _graph = graph;
@@ -59,6 +60,7 @@ public abstract class GraphAStar<V, E> extends AStar<V> {
     /**
      * A wrapper function that searches for a set of edges that yields the
      * optimal path of vertices returned by A*.
+     * 
      * @param start the starting vertex
      * @param goal the ending vertex
      * @return a list of edges implementing an optimal path
