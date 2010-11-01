@@ -215,6 +215,7 @@ public abstract class DStarLite<State> {
 
     /**
      * Returns the set of successor states to the specified state.
+     *
      * @param s the specified state.
      * @return A set of successor states.
      */
@@ -222,6 +223,7 @@ public abstract class DStarLite<State> {
 
     /**
      * Returns the set of predecessor states to the specified state.
+     *
      * @param s the specified state.
      * @return A set of predecessor states.
      */
@@ -245,6 +247,7 @@ public abstract class DStarLite<State> {
      * An exact cost function for the distance between two <i>neighboring</i>
      * states.  This function is undefined for non-neighboring states.  The
      * neighbor connectivity is determined by the pred() and succ() functions.
+     *
      * @param a some initial state
      * @param b some final state
      * @return the actual distance between the states.
@@ -264,6 +267,7 @@ public abstract class DStarLite<State> {
      * Initializes a D* search object with the specified start and goal states.
      * This constructor roughly corresponds to the <i>initialize()<i> function
      * in the pseudocode of the original paper.
+     *
      * @param start the desired start state
      * @param goal the desires end state
      */
@@ -348,7 +352,8 @@ public abstract class DStarLite<State> {
 
     /**
      * Used to indicate that the distance from state A to state B has been
-     * changed from cOld to cNew, and need to replanned in the next iteration.
+     * changed from cOld to cNew, and needs to replanned in the next iteration.
+     * 
      * @param u some initial state
      * @param v some final state
      * @param cOld the old cost value
@@ -381,6 +386,7 @@ public abstract class DStarLite<State> {
     /**
      * Change the start location after initialization.  Used to cheaply move
      * robot along path without needing to replan.
+     * 
      * @param s the new start state
      */
     public void updateStart(State s) {
@@ -399,6 +405,7 @@ public abstract class DStarLite<State> {
      * Recomputes the lowest cost path through the map, taking into account
      * any changes in start location and edge costs.  If no path can be found
      * this will return an empty list.
+     *
      * @return a list of states from start to goal
      */
     public List<State> plan() {
