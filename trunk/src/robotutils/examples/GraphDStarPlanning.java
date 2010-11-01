@@ -48,9 +48,9 @@ import robotutils.planning.GraphDStar;
 
 /**
  * Creates a randomized small worlds graph and solves a path between two random
- * locations using A-Star search.  Note that a <i>significant</i> portion of
+ * locations using D-Star search.  Note that a <i>significant</i> portion of
  * this code is boilerplate code for creating and displaying the graph.  The
- * actual use of the A* algorithm consists of only a handful of lines in the
+ * actual use of the D* algorithm consists of only a handful of lines in the
  * middle.
  *
  * @author Prasanna Velagapudi <psigen@gmail.com>
