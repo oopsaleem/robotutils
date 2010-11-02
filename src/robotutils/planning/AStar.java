@@ -31,10 +31,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
 /**
  * This class implements the basic A* graph search algorithm.  A* is an optimal
@@ -126,7 +126,7 @@ public abstract class AStar<State> {
 
         // Create open and closed sets, and a map to store node meta-info
         HashMap<State, Score<State>> scores = new HashMap(INITIAL_CAPACITY);
-        Vector<State> closed = new Vector();
+        HashSet<State> closed = new HashSet();
         PriorityQueue<State> open = new PriorityQueue(INITIAL_CAPACITY, new ScoreComparator(scores));
 
         // Insert the start node into our search tree
