@@ -160,55 +160,33 @@ public abstract class DStarLite<State> {
         }
     
         private PriorityQueue<StateKey> _queue;
-        private HashMap<State, StateKey> _hashmap;
-        private boolean _needsUpdate;
-
+        
         public KeyQueue() {
             _queue = new PriorityQueue(INITIAL_CAPACITY, new StateKeyComparator());
-            _hashmap = new HashMap(INITIAL_CAPACITY);
-            _needsUpdate = false;
         }
 
         public void insert(State s, Key k) {
-            StateKey sk = new StateKey(s, k);
-            _queue.add(sk);
-            _hashmap.put(s, sk);
+            _queue.add(new StateKey(s, k));
         }
 
         public void update(State s, Key k) {
-            StateKey sk = _hashmap.get(s);
-            
-            if (sk != null) {
-                sk.k = k;
-                _needsUpdate = true;
-            }
+            _queue.update(new StateKey(s, k));
         }
 
         public void remove(State s) {
             _queue.remove(new StateKey(s, null));
-            _hashmap.remove(s);
         }
 
         public Key topKey() {
-            if (_needsUpdate) {
-                _queue.update();
-                _needsUpdate = false;
-            }
-
             return _queue.peek().k;
         }
 
         public State top() {
-            if (_needsUpdate) {
-                _queue.update();
-                _needsUpdate = false;
-            }
-
             return _queue.peek().s;
         }
 
         public boolean contains(State s) {
-            return _hashmap.containsKey(s);
+            return _queue.contains(new StateKey(s, null));
         }
 
         public boolean isEmpty() {
