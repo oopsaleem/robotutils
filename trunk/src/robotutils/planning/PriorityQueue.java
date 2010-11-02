@@ -239,9 +239,11 @@ public class PriorityQueue<E> {
             if (_comparator.compare(x, (E) e) >= 0)
                 break;
             _queue.set(k, e);
+            _hashmap.put(e, k);
             k = parent;
         }
         _queue.set(k, x);
+        _hashmap.put(x, k);
     }
 
     private void siftDown(int k, E x) {
@@ -256,9 +258,11 @@ public class PriorityQueue<E> {
             if (_comparator.compare(x, c) <= 0)
                 break;
             _queue.set(k, c);
+            _hashmap.put(c, k);
             k = child;
         }
         _queue.set(k, x);
+        _hashmap.put(x, k);
     }
 
     /**
