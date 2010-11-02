@@ -32,6 +32,7 @@ package robotutils.planning;
 
 import java.util.Comparator;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Vector;
 
 /**
@@ -47,6 +48,11 @@ public class PriorityQueue<E> {
     private Vector<E> _queue;
 
     /**
+     * A backing hashmap used to find elements
+     */
+    private HashMap<E, Integer> _hashmap;
+
+    /**
      * The comparator used to order elements.
      */
     private Comparator _comparator;
@@ -56,7 +62,8 @@ public class PriorityQueue<E> {
      * @param comparator comparison operator to use when ordering elements
      */
     public PriorityQueue(PriorityQueue<? extends E> c) {
-        _queue = (Vector<E>)c._queue.clone();
+        _queue = (Vector)c._queue.clone();
+        _hashmap = (HashMap)c._hashmap.clone();
         _comparator = c._comparator;
     }
 
@@ -66,6 +73,7 @@ public class PriorityQueue<E> {
      */
     public PriorityQueue(Comparator<? super E> comparator) {
         _queue = new Vector();
+        _hashmap = new HashMap();
         _comparator = comparator;
     }
 
@@ -76,6 +84,7 @@ public class PriorityQueue<E> {
      */
     public PriorityQueue(int initialCapacity, Comparator<? super E> comparator) {
         _queue = new Vector(initialCapacity);
+        _hashmap = new HashMap(initialCapacity);
         _comparator = comparator;
     }
 
@@ -86,15 +95,18 @@ public class PriorityQueue<E> {
      */
     public synchronized void add(E x) {
         int newSize = _queue.size()+1;
-        _queue.setSize (newSize);
-        
+        _queue.setSize(newSize);
+
         int i, p;
         for (i=newSize-1, p = ((i+1)/2)-1; // i's parent
              i > 0 && _comparator.compare(_queue.get(p), x) > 0;
-             i = p, p = ((i+1)/2)-1)
-            _queue.setElementAt (_queue.get(p), i);
+             i = p, p = ((i+1)/2)-1) {
+            _queue.setElementAt(_queue.get(p), i);
+            _hashmap.put(_queue.get(p), i);
+        }
 
-        _queue.setElementAt (x, i);
+        _queue.setElementAt(x, i);
+        _hashmap.put(x, i);
     }
 
     /**
@@ -115,7 +127,7 @@ public class PriorityQueue<E> {
         }
         
         E obj = _queue.get(0);
-        deleteElement (0);
+        deleteElement(0);
         return obj;
     }
 
@@ -139,7 +151,8 @@ public class PriorityQueue<E> {
      * Remove all objects from queue.
      */
     public synchronized void clear() {
-        _queue.removeAllElements ();
+        _queue.clear();
+        _hashmap.clear();
     }
 
     
@@ -148,7 +161,7 @@ public class PriorityQueue<E> {
      * @return enumeration of objects in queue
      */
     public synchronized Enumeration elements() {
-        return _queue.elements ();
+        return _queue.elements();
     }
 
     
@@ -165,56 +178,97 @@ public class PriorityQueue<E> {
      * @return true iff queue is empty.
      */
     public synchronized boolean isEmpty() {
-        return _queue.isEmpty ();
+        return _queue.isEmpty();
     }
 
     /**
-     * Rebuild priority queuein case the priorities of its elements 
-     * have changed since they were inserted.  If the priority of
-     * any element changes, this method must be called to update
-     * the priority queue.
+     * Rebuild priority queue if the priorities of arbitrary elements
+     * have changed since they were inserted.
      */
     public synchronized void update() {
-        for (int i = (_queue.size()/2) - 1; i >= 0; --i)
-            heapify (i);
+        heapify();
+    }
+
+    /**
+     * Rebuild priority queue if the priority of at most one element
+     * has changed since insertion.
+     */
+    public synchronized void update(E x) {
+        Integer i = _hashmap.get(x);
+        if (i == null) {
+            throw new IllegalArgumentException("Attempted to update unknown state");
+        }
+
+        int delta = _comparator.compare(x, _queue.get(i));
+
+        if (delta > 0) {
+            siftDown(i, _queue.get(i));
+        } else if (delta < 0) {
+            siftUp(i, _queue.get(i));
+        }
+    }
+
+    /**
+     * Checks whether element is currently somewhere in queue.
+     * @param x the element for which to test
+     * @return {@code true} if the element is contained in the queue
+     */
+    public synchronized boolean contains(E x) {
+        return _hashmap.containsKey(x);
     }
 
     final void deleteElement(int i) {
         int last = _queue.size()-1;
+
+        _hashmap.remove(_queue.get(i));
+        
         _queue.setElementAt(_queue.get(last), i);
-        _queue.setElementAt(null, last);    // avoid holding extra reference
+        _queue.setElementAt(null, last); // avoid holding extra reference
         _queue.setSize(last);
-        heapify(i);
+
+        if (last != i) {
+            _hashmap.put(_queue.get(i), i);
+            siftDown(i, _queue.get(i));
+        }
+    }
+
+    private void siftUp(int k, E x) {
+        while (k > 0) {
+            int parent = (k - 1) >>> 1;
+            E e = _queue.get(parent);
+            if (_comparator.compare(x, (E) e) >= 0)
+                break;
+            _queue.set(k, e);
+            k = parent;
+        }
+        _queue.set(k, x);
+    }
+
+    private void siftDown(int k, E x) {
+        int half = size() >>> 1;
+        while (k < half) {
+            int child = (k << 1) + 1;
+            E c = _queue.get(child);
+            int right = child + 1;
+            if (right < size() &&
+                _comparator.compare(c, _queue.get(right)) > 0)
+                c = _queue.get(child = right);
+            if (_comparator.compare(x, c) <= 0)
+                break;
+            _queue.set(k, c);
+            k = child;
+        }
+        _queue.set(k, x);
     }
 
     /**
-     * Establishes the heap property at i's descendents.
+     * Establishes the heap property over the entire tree.
      */
-    final void heapify(int i) {
-        int max = _queue.size();
-        while (i < max) {
-            int r = 2*(i+1); // right child of i
-            int l = r - 1;   // left child of i
+    final void heapify() {
+        int size = size();
 
-            int smallest = i;
-            E prioritySmallest = _queue.get(i);
-            E priorityR;
-
-            if (r < max && _comparator.compare(priorityR = _queue.get(r), prioritySmallest) < 0) {
-                smallest = r;
-                prioritySmallest = priorityR;
-            }
-            if (l < max && _comparator.compare(_queue.get(l), prioritySmallest) < 0) {
-                smallest = l;
-            }
-
-            if (smallest != i) {
-                swap (i, smallest);
-                i = smallest;
-            }
-            else
-                break;
-        }
+        for (int i = (size >>> 1) - 1; i >= 0; i--)
+            siftDown(i, _queue.get(i));
     }
 
     /**
