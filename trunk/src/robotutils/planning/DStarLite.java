@@ -30,7 +30,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.PriorityQueue;
 import robotutils.data.DoubleUtils;
 
 /**
@@ -120,10 +119,10 @@ public abstract class DStarLite<State> {
      */
     final class KeyQueue {
 
-        private class StateKey {
+        private final class StateKey {
             
             final State s;
-            final Key k;
+            Key k;
 
             public StateKey(State s, Key k) {
                 this.s = s;
@@ -131,16 +130,12 @@ public abstract class DStarLite<State> {
             }
 
             @Override
+            @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
             public boolean equals(Object obj) {
-
-                if (obj == null) {
-                    return false;
-                } else if (getClass() != obj.getClass()) {
-                    return false;
-                } else {
-                    StateKey that = (StateKey)obj;
-                    return (this.s.equals(that.s));
-                }
+                // We do a dangerous unchecked comparison (no null-test, etc.)
+                // because this is a private class and should be well-behaved.
+                StateKey that = (StateKey)obj;
+                return (this.s.equals(that.s));
             }
 
             @Override
@@ -156,43 +151,64 @@ public abstract class DStarLite<State> {
             }
         }
 
-        private class StateKeyComparator implements Comparator<StateKey> {
+        private final class StateKeyComparator implements Comparator<StateKey> {
             
-            public int compare(StateKey o1, StateKey o2) {
+            public final int compare(StateKey o1, StateKey o2) {
                 // Lowest key = highest priority (reversing lexical ordering)
                 return o1.k.compareTo(o2.k);
             }
         }
     
         private PriorityQueue<StateKey> _queue;
+        private HashMap<State, StateKey> _hashmap;
+        private boolean _needsUpdate;
 
         public KeyQueue() {
             _queue = new PriorityQueue(INITIAL_CAPACITY, new StateKeyComparator());
+            _hashmap = new HashMap(INITIAL_CAPACITY);
+            _needsUpdate = false;
         }
 
         public void insert(State s, Key k) {
-            _queue.add(new StateKey(s, k));
+            StateKey sk = new StateKey(s, k);
+            _queue.add(sk);
+            _hashmap.put(s, sk);
         }
 
         public void update(State s, Key k) {
-            _queue.remove(new StateKey(s, null));
-            _queue.add(new StateKey(s, k));
+            StateKey sk = _hashmap.get(s);
+            
+            if (sk != null) {
+                sk.k = k;
+                _needsUpdate = true;
+            }
         }
 
         public void remove(State s) {
             _queue.remove(new StateKey(s, null));
+            _hashmap.remove(s);
         }
 
         public Key topKey() {
+            if (_needsUpdate) {
+                _queue.update();
+                _needsUpdate = false;
+            }
+
             return _queue.peek().k;
         }
 
         public State top() {
+            if (_needsUpdate) {
+                _queue.update();
+                _needsUpdate = false;
+            }
+
             return _queue.peek().s;
         }
 
         public boolean contains(State s) {
-            return _queue.contains(new StateKey(s, null));
+            return _hashmap.containsKey(s);
         }
 
         public boolean isEmpty() {
