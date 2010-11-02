@@ -49,8 +49,17 @@ public class PriorityQueue<E> {
     /**
      * The comparator used to order elements.
      */
-    private Comparator<? super E> _comparator;
-    
+    private Comparator _comparator;
+
+    /**
+     * Make a copy of another PriorityQueue.
+     * @param comparator comparison operator to use when ordering elements
+     */
+    public PriorityQueue(PriorityQueue<? extends E> c) {
+        _queue = (Vector<E>)c._queue.clone();
+        _comparator = c._comparator;
+    }
+
     /**
      * Make an empty PriorityQueue.
      * @param comparator comparison operator to use when ordering elements
@@ -75,7 +84,7 @@ public class PriorityQueue<E> {
      * duplicate puts.
      * @param x object to put on the queue 
      */
-    public synchronized void put(E x) {
+    public synchronized void add(E x) {
         int newSize = _queue.size()+1;
         _queue.setSize (newSize);
         
@@ -92,18 +101,20 @@ public class PriorityQueue<E> {
      * Get object with lowest priority from queue.
      * @return object with lowest priority, or null if queue is empty
      */
-    public synchronized Object getMin() {
-        return !empty() ? _queue.elementAt (0) : null;
+    public synchronized E peek() {
+        return !isEmpty() ? _queue.elementAt (0) : null;
     }
 
     /**
      * Get and delete the object with lowest priority.
      * @return object with lowest priority, or null if queue is empty
      */
-    public synchronized Object deleteMin() {
-        if (empty())
+    public synchronized E poll() {
+        if (isEmpty()) {
             return null;
-        Object obj = _queue.elementAt (0);
+        }
+        
+        E obj = _queue.elementAt (0);
         deleteElement (0);
         return obj;
     }
@@ -114,7 +125,7 @@ public class PriorityQueue<E> {
      * @param x object to delete
      * @return true if x was found and deleted, false if x not found in queue
      */
-    public synchronized boolean delete(E x) {
+    public synchronized boolean remove(E x) {
         int i = _queue.indexOf(x);
         if (i == -1) {
             return false;
@@ -146,15 +157,14 @@ public class PriorityQueue<E> {
      * @return number of objects
      */
     public synchronized int size() {
-        return _queue.size ();
+        return _queue.size();
     }
-
     
     /**
      * Test whether queue is empty.
      * @return true iff queue is empty.
      */
-    public synchronized boolean empty() {
+    public synchronized boolean isEmpty() {
         return _queue.isEmpty ();
     }
 
