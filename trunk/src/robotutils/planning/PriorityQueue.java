@@ -30,9 +30,9 @@
 
 package robotutils.planning;
 
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.Vector;
-import robotutils.planning.PriorityQueue.Prioritized;
 
 /**
  * Priority queue.  Objects stored in a priority queue must implement 
@@ -42,30 +42,32 @@ import robotutils.planning.PriorityQueue.Prioritized;
 public class PriorityQueue<E> {
 
     /**
-     * Interface for objects stored in a PriorityQueue.
+     * The queue of elements.
      */
-    public interface Prioritized {
-        /**
-         * Get the priority of the object.
-         */
-        public abstract float getPriority ();
-    }
+    private Vector<E> _queue;
 
-    private Vector q; // the queue of elements
+    /**
+     * The comparator used to order elements.
+     */
+    private Comparator<? super E> _comparator;
     
     /**
      * Make an empty PriorityQueue.
+     * @param comparator comparison operator to use when ordering elements
      */
-    public PriorityQueue () {
-        q = new Vector ();
+    public PriorityQueue(Comparator<? super E> comparator) {
+        _queue = new Vector();
+        _comparator = comparator;
     }
 
     /**
      * Make an empty PriorityQueue with an initial capacity.
      * @param initialCapacity number of elements initially allocated in queue
+     * @param comparator comparison operator to use when ordering elements
      */
-    public PriorityQueue (int initialCapacity) {
-        q = new Vector (initialCapacity);
+    public PriorityQueue(int initialCapacity, Comparator<? super E> comparator) {
+        _queue = new Vector(initialCapacity);
+        _comparator = comparator;
     }
 
     /**
@@ -73,36 +75,35 @@ public class PriorityQueue<E> {
      * duplicate puts.
      * @param x object to put on the queue 
      */
-    public synchronized void put (Prioritized x) {
-        int newSize = q.size()+1;
-        q.setSize (newSize);
-        float priorityX = x.getPriority ();
-
+    public synchronized void put(E x) {
+        int newSize = _queue.size()+1;
+        _queue.setSize (newSize);
+        
         int i, p;
         for (i=newSize-1, p = ((i+1)/2)-1; // i's parent
-             i > 0 && getPriority (p) > priorityX; 
+             i > 0 && _comparator.compare(_queue.elementAt(p), x) > 0;
              i = p, p = ((i+1)/2)-1)
-            q.setElementAt (q.elementAt (p), i);
+            _queue.setElementAt (_queue.elementAt (p), i);
 
-        q.setElementAt (x, i);
+        _queue.setElementAt (x, i);
     }
 
     /**
      * Get object with lowest priority from queue.
      * @return object with lowest priority, or null if queue is empty
      */
-    public synchronized Object getMin () {
-        return !empty() ? q.elementAt (0) : null;
+    public synchronized Object getMin() {
+        return !empty() ? _queue.elementAt (0) : null;
     }
 
     /**
      * Get and delete the object with lowest priority.
      * @return object with lowest priority, or null if queue is empty
      */
-    public synchronized Object deleteMin () {
+    public synchronized Object deleteMin() {
         if (empty())
             return null;
-        Object obj = q.elementAt (0);
+        Object obj = _queue.elementAt (0);
         deleteElement (0);
         return obj;
     }
@@ -113,19 +114,21 @@ public class PriorityQueue<E> {
      * @param x object to delete
      * @return true if x was found and deleted, false if x not found in queue
      */
-    public synchronized boolean delete (Prioritized x) {
-        int i = q.indexOf (x);
-        if (i == -1)
+    public synchronized boolean delete(E x) {
+        int i = _queue.indexOf(x);
+        if (i == -1) {
             return false;
-        deleteElement (i);
+        }
+        
+        deleteElement(i);
         return true;
     }
 
     /**
      * Remove all objects from queue.
      */
-    public synchronized void clear () {
-        q.removeAllElements ();
+    public synchronized void clear() {
+        _queue.removeAllElements ();
     }
 
     
@@ -133,8 +136,8 @@ public class PriorityQueue<E> {
      * Enumerate the objects in the queue, in no particular order
      * @return enumeration of objects in queue
      */
-    public synchronized Enumeration elements () {
-        return q.elements ();
+    public synchronized Enumeration elements() {
+        return _queue.elements ();
     }
 
     
@@ -142,8 +145,8 @@ public class PriorityQueue<E> {
      * Get number of objects in queue.
      * @return number of objects
      */
-    public synchronized int size () {
-        return q.size ();
+    public synchronized int size() {
+        return _queue.size ();
     }
 
     
@@ -151,8 +154,8 @@ public class PriorityQueue<E> {
      * Test whether queue is empty.
      * @return true iff queue is empty.
      */
-    public synchronized boolean empty () {
-        return q.isEmpty ();
+    public synchronized boolean empty() {
+        return _queue.isEmpty ();
     }
 
     /**
@@ -161,37 +164,37 @@ public class PriorityQueue<E> {
      * any element changes, this method must be called to update
      * the priority queue.
      */
-    public synchronized void update () {
-        for (int i = (q.size()/2) - 1; i >= 0; --i)
+    public synchronized void update() {
+        for (int i = (_queue.size()/2) - 1; i >= 0; --i)
             heapify (i);
     }
 
-    final void deleteElement (int i) {
-        int last = q.size()-1;
-        q.setElementAt (q.elementAt (last), i);
-        q.setElementAt (null, last);    // avoid holding extra reference
-        q.setSize (last);
+    final void deleteElement(int i) {
+        int last = _queue.size()-1;
+        _queue.setElementAt (_queue.elementAt (last), i);
+        _queue.setElementAt (null, last);    // avoid holding extra reference
+        _queue.setSize (last);
         heapify (i);
     }
 
     /**
      * Establishes the heap property at i's descendents.
      */
-    final void heapify (int i) {
-        int max = q.size();
+    final void heapify(int i) {
+        int max = _queue.size();
         while (i < max) {
             int r = 2*(i+1); // right child of i
             int l = r - 1;   // left child of i
 
             int smallest = i;
-            float prioritySmallest = getPriority (i);
-            float priorityR;
+            E prioritySmallest = _queue.elementAt(i);
+            E priorityR;
 
-            if (r < max && (priorityR = getPriority (r)) < prioritySmallest) {
+            if (r < max && _comparator.compare(priorityR = _queue.elementAt(r), prioritySmallest) < 0) {
                 smallest = r;
                 prioritySmallest = priorityR;
             }
-            if (l < max && getPriority (l) < prioritySmallest) {
+            if (l < max && _comparator.compare(_queue.elementAt(l), prioritySmallest) < 0) {
                 smallest = l;
             }
 
@@ -207,17 +210,9 @@ public class PriorityQueue<E> {
     /**
      * Swap elements at positions i and j in the table.
      */
-    final void swap (int i, int j) {
-        Object tmp = q.elementAt (i);
-        q.setElementAt (q.elementAt (j), i);
-        q.setElementAt (tmp, j);
-    }
-
-    /**
-     * Return the priority of the element at position i.  For convenience,
-     * positions beyond the end of the table have infinite priority.
-     */
-    final float getPriority (int i) {
-        return ((Prioritized)q.elementAt (i)).getPriority();
+    final void swap(int i, int j) {
+        E tmp = _queue.elementAt(i);
+        _queue.setElementAt(_queue.elementAt (j), i);
+        _queue.setElementAt(tmp, j);
     }
 }
