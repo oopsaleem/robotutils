@@ -175,27 +175,35 @@ public abstract class AStar<State> {
                 // Get the current estimate of the distance to goal
                 double tentativeGScore = scores.get(x).g + c(x, y);
                 boolean tentativeIsBetter;
-
+                boolean isInOpenSet;
+                
                 // If the node is unopened, or we have a better score, update
                 if (!open.contains(y)) {
                     tentativeIsBetter = true;
+                    isInOpenSet = false;
                 } else if (tentativeGScore < scores.get(y).g) {
                     tentativeIsBetter = true;
+                    isInOpenSet = true;
                 } else {
                     tentativeIsBetter = false;
+                    isInOpenSet = true;
                 }
 
                 // Update the node with the new score
                 if (tentativeIsBetter) {
-                    open.remove(y);
-
                     Score yScore = scores.get(y);
                     yScore.prev = x;
                     yScore.g = tentativeGScore;
                     yScore.h = h(y, goal);
                     yScore.f = yScore.g + yScore.h;
-                    
-                    open.add(y);
+
+                    // If this node was already in the open set from a previous
+                    // expansion, update the existing entry, otherwise add it.
+                    if (isInOpenSet) {
+                        open.update(y);
+                    } else {
+                        open.add(y);
+                    }
                 }
             }
         }
