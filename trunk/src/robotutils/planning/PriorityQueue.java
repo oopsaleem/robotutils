@@ -90,9 +90,9 @@ public class PriorityQueue<E> {
         
         int i, p;
         for (i=newSize-1, p = ((i+1)/2)-1; // i's parent
-             i > 0 && _comparator.compare(_queue.elementAt(p), x) > 0;
+             i > 0 && _comparator.compare(_queue.get(p), x) > 0;
              i = p, p = ((i+1)/2)-1)
-            _queue.setElementAt (_queue.elementAt (p), i);
+            _queue.setElementAt (_queue.get(p), i);
 
         _queue.setElementAt (x, i);
     }
@@ -102,7 +102,7 @@ public class PriorityQueue<E> {
      * @return object with lowest priority, or null if queue is empty
      */
     public synchronized E peek() {
-        return !isEmpty() ? _queue.elementAt (0) : null;
+        return !isEmpty() ? _queue.get(0) : null;
     }
 
     /**
@@ -114,7 +114,7 @@ public class PriorityQueue<E> {
             return null;
         }
         
-        E obj = _queue.elementAt (0);
+        E obj = _queue.get(0);
         deleteElement (0);
         return obj;
     }
@@ -181,10 +181,10 @@ public class PriorityQueue<E> {
 
     final void deleteElement(int i) {
         int last = _queue.size()-1;
-        _queue.setElementAt (_queue.elementAt (last), i);
-        _queue.setElementAt (null, last);    // avoid holding extra reference
-        _queue.setSize (last);
-        heapify (i);
+        _queue.setElementAt(_queue.get(last), i);
+        _queue.setElementAt(null, last);    // avoid holding extra reference
+        _queue.setSize(last);
+        heapify(i);
     }
 
     /**
@@ -197,14 +197,14 @@ public class PriorityQueue<E> {
             int l = r - 1;   // left child of i
 
             int smallest = i;
-            E prioritySmallest = _queue.elementAt(i);
+            E prioritySmallest = _queue.get(i);
             E priorityR;
 
-            if (r < max && _comparator.compare(priorityR = _queue.elementAt(r), prioritySmallest) < 0) {
+            if (r < max && _comparator.compare(priorityR = _queue.get(r), prioritySmallest) < 0) {
                 smallest = r;
                 prioritySmallest = priorityR;
             }
-            if (l < max && _comparator.compare(_queue.elementAt(l), prioritySmallest) < 0) {
+            if (l < max && _comparator.compare(_queue.get(l), prioritySmallest) < 0) {
                 smallest = l;
             }
 
@@ -221,8 +221,8 @@ public class PriorityQueue<E> {
      * Swap elements at positions i and j in the table.
      */
     final void swap(int i, int j) {
-        E tmp = _queue.elementAt(i);
-        _queue.setElementAt(_queue.elementAt (j), i);
+        E tmp = _queue.get(i);
+        _queue.setElementAt(_queue.get (j), i);
         _queue.setElementAt(tmp, j);
     }
 }
