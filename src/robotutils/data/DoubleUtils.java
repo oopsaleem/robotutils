@@ -100,6 +100,10 @@ public final class DoubleUtils {
      * less than precision
      */
     public static boolean equals(double a, double b, double precision) {
+        // This should handle positive and negative infinities with grace
+        if (Double.compare(a, b) == 0) return true;
+
+        // If we have real numbers, use a linearly-scaled numerical precision
         double norm = Math.max(Math.abs(a), Math.abs(b));
         return norm < precision || Math.abs(a - b) < precision * norm;
     }
