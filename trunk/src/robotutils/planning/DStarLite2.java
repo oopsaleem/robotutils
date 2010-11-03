@@ -28,6 +28,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.PriorityQueue;
 import java.util.LinkedList;
 import java.util.List;
 import robotutils.data.DoubleUtils;
@@ -169,10 +170,6 @@ public abstract class DStarLite2<State> {
             _queue.add(new StateKey(s, k));
         }
 
-        public void update(State s, Key k) {
-            _queue.update(new StateKey(s, k));
-        }
-
         public void remove(State s) {
             _queue.remove(new StateKey(s, null));
         }
@@ -282,7 +279,7 @@ public abstract class DStarLite2<State> {
         return new Key(k1, k2);
     }
 
-    void updateVertex(State u) {
+    public void updateVertex(State u) {
 
         if (!u.equals(_goal)) {
             double minRhs = Double.POSITIVE_INFINITY;
@@ -295,9 +292,13 @@ public abstract class DStarLite2<State> {
             }
 
             _rhs.put(u, minRhs);
-        } else if (_U.contains(u)) {
+        }
+
+        if (_U.contains(u)) {
             _U.remove(u);
-        } else if (!DoubleUtils.equals(_g.get(u), _rhs.get(u))) {
+        }
+
+        if (!DoubleUtils.equals(_g.get(u), _rhs.get(u))) {
             _U.insert(u, calculateKey(u));
         }
     }
@@ -322,27 +323,12 @@ public abstract class DStarLite2<State> {
             } else {
                 _g.put(u, Double.POSITIVE_INFINITY);
 
-                Collection<State> preds = pred(u);
-                preds.add(u);
-
-                for (State s : preds) {
+                for (State s : pred(u)) {
                     updateVertex(s);
                 }
+                updateVertex(u);
             }
         }
-    }
-
-    /**
-     * Used to indicate that the distance from state A to state B has been
-     * changed from cOld to cNew, and needs to replanned in the next iteration.
-     * 
-     * @param u some initial state
-     * @param v some final state
-     * @param cOld the old cost value
-     * @param cNew the new cost value
-     */
-    protected void flagChange(State u, State v, double cOld, double cNew) {
-        updateVertex(u);
     }
 
     /**
@@ -357,14 +343,6 @@ public abstract class DStarLite2<State> {
         _start = s;
 
         _Km += h(sLast, _start);
-
-        _rhs.put(_start, Double.POSITIVE_INFINITY);
-        _g.put(_start, Double.POSITIVE_INFINITY);
-        if (_U.contains(s)) {
-            _U.update(_start, calculateKey(_start));
-        } else {
-            _U.insert(_start, calculateKey(_start));
-        }
     }
 
     /**
@@ -382,8 +360,8 @@ public abstract class DStarLite2<State> {
 
         computeShortestPath();
         while(!s.equals(_goal)) {
-            // If rhs(sStart) == Inf, then there is no known path
-            if (_g.get(s) == Double.POSITIVE_INFINITY) {
+            // If g(sStart) = Inf, then there is no known path
+            if (Double.isInfinite(_g.get(s))) {
                 return Collections.emptyList();
             }
 
