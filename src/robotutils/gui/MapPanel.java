@@ -295,7 +295,7 @@ public class MapPanel extends JPanel {
      * @param x The x-position (left-right) in the map frame.
      * @param y The y-position (up-down) in the map frame.
      */
-    protected void onClick(double x, double y) {
+    protected void onClick(double x, double y, int button, int numClicks) {
         System.out.println("Click: [" + x + ", " + y + "]");
     }
     
@@ -337,7 +337,7 @@ public class MapPanel extends JPanel {
                 map = _mapTransform.inverseTransform(map, null);
             } catch (NoninvertibleTransformException e) {}
 
-            onClick(map.getX(), map.getY());
+            onClick(map.getX(), map.getY(), evt.getButton(), evt.getClickCount());
         }
 
         public void mousePressed(MouseEvent e) {
