@@ -287,6 +287,17 @@ public class MapPanel extends JPanel {
         g.setStroke(s);
         g.setColor(c);
     }
+
+    /**
+     * Override this method to implement a handler for mouse clicks.  By default
+     * it simply prints the coordinates of the click.
+     *
+     * @param x The x-position (left-right) in the map frame.
+     * @param y The y-position (up-down) in the map frame.
+     */
+    protected void onClick(double x, double y) {
+        System.out.println("Click: [" + x + ", " + y + "]");
+    }
     
     private class MapMouseListener implements MouseInputListener, MouseWheelListener {
 
@@ -325,8 +336,8 @@ public class MapPanel extends JPanel {
                 map = at.inverseTransform(mousePos, null);
                 map = _mapTransform.inverseTransform(map, null);
             } catch (NoninvertibleTransformException e) {}
-            
-            System.out.println("Map: [" + map + "]");
+
+            onClick(map.getX(), map.getY());
         }
 
         public void mousePressed(MouseEvent e) {
