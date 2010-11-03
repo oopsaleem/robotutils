@@ -30,6 +30,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.PriorityQueue;
 import robotutils.data.DoubleUtils;
 
 /**
@@ -170,7 +171,8 @@ public abstract class DStarLite<State> {
         }
 
         public void update(State s, Key k) {
-            _queue.update(new StateKey(s, k));
+            _queue.remove(new StateKey(s, k));
+            _queue.add(new StateKey(s, k));
         }
 
         public void remove(State s) {
@@ -357,7 +359,7 @@ public abstract class DStarLite<State> {
         
         if (cOld > cNew) {
             if (!u.equals(_goal)) {
-                _rhs.put(u, Math.min(_rhs.get(u), c(u,v) + _g.get(v)));
+                _rhs.put(u, Math.min(_rhs.get(u), cNew + _g.get(v)));
             }
         } else if (DoubleUtils.equals(_rhs.get(u), cOld + _g.get(v))) {
             if (!u.equals(_goal)) {
@@ -389,14 +391,6 @@ public abstract class DStarLite<State> {
         _start = s;
 
         _Km += h(sLast, _start);
-
-        _rhs.put(_start, Double.POSITIVE_INFINITY);
-        _g.put(_start, Double.POSITIVE_INFINITY);
-        if (_U.contains(s)) {
-            _U.update(_start, calculateKey(_start));
-        } else {
-            _U.insert(_start, calculateKey(_start));
-        }
     }
 
     /**
@@ -414,8 +408,8 @@ public abstract class DStarLite<State> {
 
         computeShortestPath();
         while(!s.equals(_goal)) {
-            // If rhs(sStart) == Inf, then there is no known path
-            if (_rhs.get(s) == Double.POSITIVE_INFINITY) {
+            // If rhs(sStart) = Inf, then there is no known path
+            if (Double.isInfinite(_rhs.get(s))) {
                 return Collections.emptyList();
             }
 
