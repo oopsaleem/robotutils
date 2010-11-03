@@ -39,7 +39,7 @@ import robotutils.data.DoubleUtils;
  * obstacles.
  *
  * Source: Koenig, S. and Likhachev, M. 2002. D*lite. In Eighteenth National
- * Conference on Artificial intelligence (Edmonton, Alberta, Canada, July 28 -
+ * Conference on Artificial Intelligence (Edmonton, Alberta, Canada, July 28 -
  * August 01, 2002). R. Dechter, M. Kearns, and R. Sutton, Eds. American
  * Association for Artificial Intelligence, Menlo Park, CA, 476-483
  *
@@ -361,20 +361,20 @@ public abstract class DStarLite<State> {
             }
         } else if (DoubleUtils.equals(_rhs.get(u), cOld + _g.get(v))) {
             if (!u.equals(_goal)) {
-                if (!u.equals(_goal)) {
-                    double minRhs = Double.POSITIVE_INFINITY;
+                double minRhs = Double.POSITIVE_INFINITY;
 
-                    for (State sPrime : succ(u)) {
-                        double rhsPrime = c(u, sPrime) + _g.get(sPrime);
-                        if (rhsPrime < minRhs) {
-                            minRhs = rhsPrime;
-                        }
+                for (State sPrime : succ(u)) {
+                    double rhsPrime = c(u, sPrime) + _g.get(sPrime);
+                    if (rhsPrime < minRhs) {
+                        minRhs = rhsPrime;
                     }
-
-                    _rhs.put(u, minRhs);
                 }
+
+                _rhs.put(u, minRhs);
             }
         }
+
+        updateVertex(u);
     }
 
     /**
@@ -392,7 +392,11 @@ public abstract class DStarLite<State> {
 
         _rhs.put(_start, Double.POSITIVE_INFINITY);
         _g.put(_start, Double.POSITIVE_INFINITY);
-        _U.update(_start, calculateKey(_start));
+        if (_U.contains(s)) {
+            _U.update(_start, calculateKey(_start));
+        } else {
+            _U.insert(_start, calculateKey(_start));
+        }
     }
 
     /**
