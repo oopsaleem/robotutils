@@ -27,6 +27,7 @@ package robotutils.planning;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import robotutils.data.CoordUtils;
 import robotutils.data.GridMap;
@@ -70,15 +71,11 @@ public class GridDStar extends DStarLite<IntCoord> {
         for (int i = 0; i < _map.dims(); i++) {
             int[] up = Arrays.copyOf(s.getInts(), s.getInts().length);
             up[i] += 1;
-            if (_map.get(up) >= 0) {
-                nbrs.add(new IntCoord(up));
-            }
-
+            nbrs.add(new IntCoord(up));
+            
             int[] down = Arrays.copyOf(s.getInts(), s.getInts().length);
             down[i] -= 1;
-            if (_map.get(down) >= 0) {
-                nbrs.add(new IntCoord(down));
-            }
+            nbrs.add(new IntCoord(down));
         }
 
         return nbrs;
@@ -106,7 +103,10 @@ public class GridDStar extends DStarLite<IntCoord> {
             return Double.POSITIVE_INFINITY;
         } else {
             double cA = _map.get(a.getInts());
+            if (cA < 0) return Double.POSITIVE_INFINITY;
+
             double cB = _map.get(b.getInts());
+            if (cB < 0) return Double.POSITIVE_INFINITY;
 
             double cost = (cA + cB)/2.0 + 1.0;
             if (cost <= 0) {
@@ -116,4 +116,41 @@ public class GridDStar extends DStarLite<IntCoord> {
         }
     }
 
+    public void setCost(IntCoord s, byte val) {
+
+        // If the cost hasn't changed, don't do anything
+        if (val == _map.get(s.getInts()))
+            return;
+
+        // Find all affected edges (tuples of this cell and its neighbors)
+        Collection<IntCoord> preds = pred(s);
+        Collection<IntCoord> succs = succ(s);
+
+        // Record old costs
+        HashMap<IntCoord, Double> predVals = new HashMap();
+        for (IntCoord sPrime : preds) {
+            predVals.put(sPrime, c(sPrime, s));
+        }
+
+        HashMap<IntCoord, Double> succVals = new HashMap();
+        for (IntCoord sPrime : succs) {
+            succVals.put(sPrime, c(s, sPrime));
+        }
+
+        // Change map cost
+        _map.set(val, s.getInts());
+
+        // Flag changes to new costs
+        for (IntCoord sPrime : preds) {
+            flagChange(sPrime, s, predVals.get(sPrime), c(sPrime, s));
+        }
+
+        for (IntCoord sPrime : succs) {
+            flagChange(s, sPrime, succVals.get(sPrime), c(s, sPrime));
+        }
+    }
+
+    public void setStart(IntCoord start) {
+        updateStart(start);
+    }
 }
