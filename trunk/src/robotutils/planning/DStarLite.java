@@ -30,8 +30,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.PriorityQueue;
 import robotutils.data.DoubleUtils;
+import robotutils.util.PriorityQueue;
 
 /**
  * This class implements the optimized D*-lite algorithm exactly as described
@@ -171,8 +171,7 @@ public abstract class DStarLite<State> {
         }
 
         public void update(State s, Key k) {
-            _queue.remove(new StateKey(s, k));
-            _queue.add(new StateKey(s, k));
+            _queue.update(new StateKey(s, k));
         }
 
         public void remove(State s) {
