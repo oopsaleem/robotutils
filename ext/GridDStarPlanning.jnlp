@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- JNLP File for GridDStarPlanning Application -->
+<jnlp spec="0.2 1.0"
+	  codebase="http://robotutils.googlecode.com/svn/ext/"
+	  href="GridDStarPlanning.jnlp">
+  <information>
+    <title>Grid D* Planning Example</title>
+    <vendor>Pras Velagapudi</vendor>
+    <description>Grid D* Planning Example</description>
+    <offline-allowed/>
+	<shortcut online="true"/>
+	<update check="timeout" policy="always"/>
+  </information>
+  <security>
+      <all-permissions/>
+  </security>
+  <resources>
+    <j2se version="1.5+"/>
+    <jar href="robotutils.jar" main="true" download="eager"/>
+	<jar href="commons-math-2.0.jar" main="false" download="eager"/>
+	<jar href="RXTXcomm.jar" main="false" download="eager"/>
+	<jar href="bsh-2.0b4.jar" main="false" download="eager"/>
+	<jar href="jgrapht-jdk1.6.jar" main="false" download="eager"/>
+	<jar href="jgraph.jar" main="false" download="eager"/>
+  </resources>
+  <application-desc main-class="robotutils.examples.GridDStarPlanning"/>
+</jnlp>
+
