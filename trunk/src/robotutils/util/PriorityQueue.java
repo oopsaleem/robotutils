@@ -219,13 +219,10 @@ public class PriorityQueue<E> {
             throw new IllegalArgumentException("Attempted to update unknown state");
         }
 
-        int delta = _comparator.compare(x, _queue.get(i));
-
-        if (delta > 0) {
-            siftDown(i, _queue.get(i));
-        } else if (delta < 0) {
-            siftUp(i, _queue.get(i));
-        }
+        // If we are using equality to locate objects, presumably the updated
+        // object reference should also be used from now on.
+        _queue.set(i, x);
+        sift(i, x);
     }
 
     /**
@@ -241,14 +238,23 @@ public class PriorityQueue<E> {
         int last = _queue.size()-1;
 
         _hashmap.remove(_queue.get(i));
-        
-        _queue.setElementAt(_queue.get(last), i);
+        E x = _queue.get(last);
+
+        _queue.setElementAt(x, i);
         _queue.setElementAt(null, last); // avoid holding extra reference
         _queue.setSize(last);
 
         if (last != i) {
-            _hashmap.put(_queue.get(i), i);
-            siftDown(i, _queue.get(i));
+            _hashmap.put(x, i);
+            sift(i, x);
+        }
+    }
+
+    final void sift(int k, E x) {
+        // Try to sort down.  If that doesn't do anything, sort up.
+        siftDown(k, x);
+        if (_queue.get(k) == x) {
+            siftUp(k, x);
         }
     }
 
