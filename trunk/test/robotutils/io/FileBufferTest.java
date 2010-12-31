@@ -46,20 +46,36 @@ import robotutils.io.FileBuffer.Entry;
  * @author pkv
  */
 public class FileBufferTest {
+    public static File emptyFile;
     public static File testFile;
     public static File tempFile;
+    public static final int TEST_FILE_SIZE = 1000;
+    public static final String TEST_FILE_BASE = "BARFOO";
 
     @BeforeClass
     public static void setUpClass() throws Exception {
+        // Create empty file.
+        emptyFile = File.createTempFile("FileBufferEmptyFile", ".dat");
+
         // Create temp file.
         tempFile = File.createTempFile("FileBufferTempFile", ".dat");
 
         // Create test file (with known contents)
         testFile = File.createTempFile("FileBufferTestFile", ".dat");
+        
+        // Fill in the test file with known data
+        FileBuffer fb = new FileBuffer<String>(testFile);
+        for (int i = 0; i < TEST_FILE_SIZE; i++) {
+             fb.add(TEST_FILE_BASE + i);
+        }
     }
 
     @AfterClass
     public static void tearDownClass() throws Exception {
+        // Delete empty file
+        if (!emptyFile.delete())
+            throw new IOException("Empty file cleanup failed: " + tempFile);
+
         // Delete temp file
         if (!tempFile.delete())
             throw new IOException("Temp file cleanup failed: " + tempFile);
@@ -133,13 +149,25 @@ public class FileBufferTest {
     @Test
     public void testIsValid() {
         System.out.println("isValid");
-        long uid = 0L;
-        FileBuffer instance = null;
-        boolean expResult = false;
-        boolean result = instance.isValid(uid);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+
+        try {
+            FileBuffer instance = new FileBuffer(testFile);
+
+            for (Long uid : (Set<Long>)instance.keySet()) {
+                assertTrue( instance.isValid(uid) );
+            }
+
+            for (Long uid : (Set<Long>)instance.keySet()) {
+                assertFalse( instance.isValid(uid - 2) );
+            }
+
+            for (Long uid : (Set<Long>)instance.keySet()) {
+                assertFalse( instance.isValid(uid + 2) );
+            }
+
+        } catch (FileNotFoundException ex) {
+            fail("Did not find data file: " + ex);
+        }
     }
 
     /**
@@ -148,13 +176,21 @@ public class FileBufferTest {
     @Test
     public void testReadHeader() throws Exception {
         System.out.println("readHeader");
-        long uid = 0L;
-        FileBuffer instance = null;
-        Entry expResult = null;
-        Entry result = instance.readHeader(uid);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+
+        try {
+            FileBuffer instance = new FileBuffer(testFile);
+
+            for (Long uid : (Set<Long>)instance.keySet()) {
+                Entry header = instance.readHeader(uid);
+                assertEquals(uid, header.self);
+                assertTrue(instance.isValid(header.prev));
+                assertTrue(instance.isValid(header.self));
+                assertTrue(instance.isValid(header.next));
+                assertTrue(header.size > 0);
+            }
+        } catch (FileNotFoundException ex) {
+            fail("Did not find data file: " + ex);
+        }
     }
 
     /**
@@ -162,14 +198,16 @@ public class FileBufferTest {
      */
     @Test
     public void testRead() throws Exception {
-        System.out.println("read");
-        long uid = 0L;
-        FileBuffer instance = null;
-        Entry expResult = null;
-        Entry result = instance.read(uid);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        try {
+            FileBuffer<String> instance = new FileBuffer(testFile);
+
+            int count = 0;
+            for (String foobar : instance.values()) {
+                assertEquals(TEST_FILE_BASE + (count++), foobar);
+            }
+        } catch (FileNotFoundException ex) {
+            fail("Did not find data file: " + ex);
+        }
     }
 
     /**
@@ -193,12 +231,16 @@ public class FileBufferTest {
     @Test
     public void testSize() {
         System.out.println("size");
-        FileBuffer instance = null;
-        int expResult = 0;
-        int result = instance.size();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        
+        try {
+            FileBuffer<String> instance1 = new FileBuffer(emptyFile);
+            assertEquals(0, instance1.size());
+
+            FileBuffer<String> instance2 = new FileBuffer(testFile);
+            assertEquals(TEST_FILE_SIZE, instance2.size());
+        } catch (FileNotFoundException ex) {
+            fail("Did not find data file: " + ex);
+        }
     }
 
     /**
@@ -221,12 +263,16 @@ public class FileBufferTest {
     @Test
     public void testIsEmpty() {
         System.out.println("isEmpty");
-        FileBuffer instance = null;
-        boolean expResult = false;
-        boolean result = instance.isEmpty();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        
+        try {
+            FileBuffer<String> instance1 = new FileBuffer(emptyFile);
+            assertTrue(instance1.isEmpty());
+
+            FileBuffer<String> instance2 = new FileBuffer(testFile);
+            assertFalse(instance2.isEmpty());
+        } catch (FileNotFoundException ex) {
+            fail("Did not find data file: " + ex);
+        }
     }
 
     /**
@@ -235,13 +281,25 @@ public class FileBufferTest {
     @Test
     public void testContainsKey() {
         System.out.println("containsKey");
-        Object uid = null;
-        FileBuffer instance = null;
-        boolean expResult = false;
-        boolean result = instance.containsKey(uid);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+
+        try {
+            FileBuffer instance = new FileBuffer(testFile);
+
+            for (Long uid : (Set<Long>)instance.keySet()) {
+                assertTrue( instance.containsKey(uid) );
+            }
+
+            for (Long uid : (Set<Long>)instance.keySet()) {
+                assertFalse( instance.containsKey(uid - 2) );
+            }
+
+            for (Long uid : (Set<Long>)instance.keySet()) {
+                assertFalse( instance.containsKey(uid + 2) );
+            }
+
+        } catch (FileNotFoundException ex) {
+            fail("Did not find data file: " + ex);
+        }
     }
 
     /**
@@ -250,13 +308,21 @@ public class FileBufferTest {
     @Test
     public void testContainsValue() {
         System.out.println("containsValue");
-        Object obj = null;
-        FileBuffer instance = null;
-        boolean expResult = false;
-        boolean result = instance.containsValue(obj);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+
+        try {
+            FileBuffer<String> instance = new FileBuffer(testFile);
+
+            for (int i = 0; i < TEST_FILE_SIZE; i++) {
+                assertTrue(instance.containsValue(TEST_FILE_BASE + i));
+            }
+
+            assertFalse(instance.containsValue(TEST_FILE_BASE + "-1"));
+            assertFalse(instance.containsValue(TEST_FILE_BASE + (TEST_FILE_SIZE + 1)));
+            assertFalse(instance.containsValue("FOOBAR0"));
+            
+        } catch (FileNotFoundException ex) {
+            fail("Did not find data file: " + ex);
+        }
     }
 
     /**
