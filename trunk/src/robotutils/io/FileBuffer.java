@@ -74,7 +74,7 @@ public class FileBuffer<T extends Serializable> implements Map<Long, T> {
     /**
      * The size of the header that accompanies each object in file (in bytes)
      */
-    private static final int HEADER_SIZE = Long.SIZE * 4;
+    private static final int HEADER_SIZE = Long.SIZE * 5;
 
 
     /**
@@ -141,10 +141,11 @@ public class FileBuffer<T extends Serializable> implements Map<Long, T> {
         while(true) {
             try {
                 _penultimatePosition = _lastPosition;
+                if (!isValid(_lastPosition)) break;
                 _lastPosition = readHeader(_lastPosition).next;
                 ++_size;
             } catch (IOException ex) {
-                break;
+                throw new RuntimeException(ex);
             }
         }
     }
@@ -197,7 +198,7 @@ public class FileBuffer<T extends Serializable> implements Map<Long, T> {
         try {
             return (uid >= 0) && (uid < _file.size());
         } catch (IOException ex) {
-            return false;
+            throw new RuntimeException(ex);
         }
     }
 
@@ -207,7 +208,7 @@ public class FileBuffer<T extends Serializable> implements Map<Long, T> {
      * having to fully de-serialize them.
      * 
      * @param uid the UID of the object whose header is being accessed.
-     * @return An Entry object with only the header portion filled in.
+     * @return An Entry object with only the header portion filled in, or null if the UID does not match a valid object.
      * @throws IOException Indicates that de-serialization of the header failed.
      */
     protected final Entry readHeader(long uid) throws IOException {
@@ -227,7 +228,13 @@ public class FileBuffer<T extends Serializable> implements Map<Long, T> {
         entry.next = ptrs.getLong();
         entry.size = ptrs.getLong();
 
-        return entry;
+        // If checksum is valid, return entry, if not, return null
+        long checksum = ptrs.getLong() + entry.prev + entry.self + entry.next + entry.size;
+        if (checksum == 0) {
+            return entry;
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -243,6 +250,8 @@ public class FileBuffer<T extends Serializable> implements Map<Long, T> {
         
         // Get entry header
         Entry entry = readHeader(uid);
+        if (entry == null)
+            throw new IOException("Could not locate object from UID.");
         
         // Read actual stored object
         ByteBuffer payload = ByteBuffer.allocate((int)entry.size);
@@ -286,6 +295,10 @@ public class FileBuffer<T extends Serializable> implements Map<Long, T> {
         lptrs.put(_lastPosition); // self
         lptrs.put(_lastPosition + baos.size() + ptrs.capacity()); // next
         lptrs.put(baos.size()); // size
+        lptrs.put(  - _penultimatePosition
+                    - _lastPosition
+                    - _lastPosition - baos.size() - ptrs.capacity()
+                    - baos.size() ); //checksum
         _file.write(ptrs);
 
         // Construct object information
@@ -545,7 +558,15 @@ public class FileBuffer<T extends Serializable> implements Map<Long, T> {
      */
     public boolean containsKey(Object uid) {
         if (uid instanceof Long) {
-            return isValid((Long)uid);
+            if (!isValid((Long)uid))
+                return false;
+
+            try {
+                Entry header = readHeader((Long)uid);
+                return (header != null);
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
         } else {
             return false;
         }
