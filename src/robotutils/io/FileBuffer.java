@@ -647,10 +647,10 @@ public class FileBuffer<T extends Serializable> implements Map<Long, T> {
         Long uid = null;
 
         // Throw out invalid object keys
-        if (!(obj instanceof Long)) {
+        if (!(key instanceof Long)) {
             return obj;
         } else {
-            uid = (Long)obj;
+            uid = (Long)key;
         }
 
         // Check the cache
