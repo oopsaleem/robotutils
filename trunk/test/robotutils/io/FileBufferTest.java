@@ -50,11 +50,46 @@ public class FileBufferTest {
     public static File emptyFile;
     public static File testFile;
     public static File tempFile;
-    public static final int TEST_FILE_SIZE = 1000;
-    public static final String TEST_FILE_BASE = "BARFOO";
+    public static final int TEST_FILE_SIZE = 200;
+
+    /**
+     * An object with a large memory footprint but a really easy to match hash.
+     */
+    public static class BigObject implements Serializable {
+
+        private static final long serialVersionUID = 1L;
+        byte[] filler;
+        int uid;
+
+        public BigObject(int _uid, byte[] _filler) {
+            uid = _uid;
+            filler = _filler;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj instanceof BigObject) {
+                return (uid == ((BigObject) obj).uid);
+            } else {
+                return false;
+            }
+        }
+
+        @Override
+        public int hashCode() {
+            int hash = 7;
+            hash = 29 * hash + this.uid;
+            return hash;
+        }
+    }
 
     @BeforeClass
     public static void setUpClass() throws Exception {
+        // Create a test file entry so large that many of them can't be kept in the heap at one time
+        System.out.println("" + Runtime.getRuntime().maxMemory() / 200);
+        //new Random().nextBytes(new byte[Runtime.getRuntime().maxMemory()/1000]);
+        byte[] filler = new byte[0];
+
         // Create empty file.
         emptyFile = File.createTempFile("FileBufferEmptyFile", ".dat");
 
@@ -65,9 +100,9 @@ public class FileBufferTest {
         testFile = File.createTempFile("FileBufferTestFile", ".dat");
         
         // Fill in the test file with known data
-        FileBuffer fb = new FileBuffer<String>(testFile);
+        FileBuffer fb = new FileBuffer<BigObject>(testFile);
         for (int i = 0; i < TEST_FILE_SIZE; i++) {
-             fb.add(TEST_FILE_BASE + i);
+             fb.add(new BigObject(i, filler));
         }
     }
 
@@ -193,11 +228,11 @@ public class FileBufferTest {
     @Test
     public void testRead() throws Exception {
         try {
-            FileBuffer<String> instance = new FileBuffer(testFile);
+            FileBuffer<BigObject> instance = new FileBuffer(testFile);
 
             int count = 0;
-            for (String foobar : instance.values()) {
-                assertEquals(TEST_FILE_BASE + (count++), foobar);
+            for (BigObject foobar : instance.values()) {
+                assertEquals(new BigObject(count++, null), foobar);
             }
 
             assertEquals(TEST_FILE_SIZE, count);
@@ -232,10 +267,10 @@ public class FileBufferTest {
         System.out.println("size");
         
         try {
-            FileBuffer<String> instance1 = new FileBuffer(emptyFile);
+            FileBuffer<BigObject> instance1 = new FileBuffer(emptyFile);
             assertEquals(0, instance1.size());
 
-            FileBuffer<String> instance2 = new FileBuffer(testFile);
+            FileBuffer<BigObject> instance2 = new FileBuffer(testFile);
             assertEquals(TEST_FILE_SIZE, instance2.size());
         } catch (FileNotFoundException ex) {
             fail("Did not find data file: " + ex);
@@ -250,16 +285,16 @@ public class FileBufferTest {
         System.out.println("entrySet");
 
         try {
-            FileBuffer<String> instance = new FileBuffer(testFile);
-            Set<Map.Entry<Long, String>> entrySet = instance.entrySet();
+            FileBuffer<BigObject> instance = new FileBuffer(testFile);
+            Set<Map.Entry<Long, BigObject>> entrySet = instance.entrySet();
 
             assertEquals(TEST_FILE_SIZE, entrySet.size());
 
             int count = 0;
-            for (Map.Entry<Long, String> entry : entrySet) {
+            for (Map.Entry<Long, BigObject> entry : entrySet) {
                 assertTrue(instance.isValid(entry.getKey()));
-                assertEquals(TEST_FILE_BASE + count, instance.get(entry.getKey()));
-                assertEquals(TEST_FILE_BASE + count, entry.getValue());
+                assertEquals(new BigObject(count, null), instance.get(entry.getKey()));
+                assertEquals(new BigObject(count, null), entry.getValue());
                 count++;
             }
 
@@ -277,10 +312,10 @@ public class FileBufferTest {
         System.out.println("isEmpty");
         
         try {
-            FileBuffer<String> instance1 = new FileBuffer(emptyFile);
+            FileBuffer<BigObject> instance1 = new FileBuffer(emptyFile);
             assertTrue(instance1.isEmpty());
 
-            FileBuffer<String> instance2 = new FileBuffer(testFile);
+            FileBuffer<BigObject> instance2 = new FileBuffer(testFile);
             assertFalse(instance2.isEmpty());
         } catch (FileNotFoundException ex) {
             fail("Did not find data file: " + ex);
@@ -322,15 +357,14 @@ public class FileBufferTest {
         System.out.println("containsValue");
 
         try {
-            FileBuffer<String> instance = new FileBuffer(testFile);
+            FileBuffer<BigObject> instance = new FileBuffer(testFile);
 
             for (int i = 0; i < TEST_FILE_SIZE; i++) {
-                assertTrue(instance.containsValue(TEST_FILE_BASE + i));
+                assertTrue(instance.containsValue(new BigObject(i, null)));
             }
 
-            assertFalse(instance.containsValue(TEST_FILE_BASE + "-1"));
-            assertFalse(instance.containsValue(TEST_FILE_BASE + (TEST_FILE_SIZE + 1)));
-            assertFalse(instance.containsValue("FOOBAR0"));
+            assertFalse(instance.containsValue(new BigObject(-1, null)));
+            assertFalse(instance.containsValue(new BigObject(TEST_FILE_SIZE + 1, null)));
             
         } catch (FileNotFoundException ex) {
             fail("Did not find data file: " + ex);
@@ -345,7 +379,7 @@ public class FileBufferTest {
         System.out.println("keySet");
         
         try {
-            FileBuffer<String> instance = new FileBuffer(testFile);
+            FileBuffer<BigObject> instance = new FileBuffer(testFile);
             Set<Long> keySet = instance.keySet();
 
             assertEquals(TEST_FILE_SIZE, keySet.size());
@@ -353,7 +387,7 @@ public class FileBufferTest {
 
             for (int i = 0; i < TEST_FILE_SIZE; i++) {
                 assertTrue(instance.isValid(keys[i]));
-                assertEquals(TEST_FILE_BASE + i, instance.get(keys[i]));
+                assertEquals(new BigObject(i, null), instance.get(keys[i]));
             }
 
         } catch (FileNotFoundException ex) {
@@ -369,14 +403,14 @@ public class FileBufferTest {
         System.out.println("values");
 
         try {
-            FileBuffer<String> instance = new FileBuffer(testFile);
-            Collection<String> values = instance.values();
+            FileBuffer<BigObject> instance = new FileBuffer(testFile);
+            Collection<BigObject> values = instance.values();
 
             assertEquals(TEST_FILE_SIZE, values.size());
             
             int count = 0;
-            for (String value : values) {
-                assertEquals(TEST_FILE_BASE + (count++), value);
+            for (BigObject value : values) {
+                assertEquals(new BigObject(count++, null), value);
             }
 
             assertEquals(TEST_FILE_SIZE, count);
@@ -392,18 +426,18 @@ public class FileBufferTest {
     public void testGet() {
         System.out.println("get");
         
-        int numTests = 1000;
+        int numTests = 100;
         Random rnd = new Random();
         ArrayList<Long> uids = new ArrayList<Long>(numTests);
-        ArrayList<String> contents = new ArrayList<String>(numTests);
+        ArrayList<BigObject> contents = new ArrayList<BigObject>(numTests);
 
         try {
             for (int i = 0; i < numTests; i++) {
-                FileBuffer<String> instance = new FileBuffer(tempFile);
-                String randStr = "FOO" + rnd.nextLong() + "BAR";
+                FileBuffer<BigObject> instance = new FileBuffer(tempFile);
+                BigObject bo = new BigObject(rnd.nextInt(), null);
 
-                contents.add(randStr);
-                uids.add(instance.add(randStr));
+                contents.add(bo);
+                uids.add(instance.add(bo));
 
                 int index = rnd.nextInt(contents.size());
                 assertEquals(contents.get(index), instance.get(uids.get(index)));
