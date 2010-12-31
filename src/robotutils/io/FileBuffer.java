@@ -152,15 +152,22 @@ public class FileBuffer<T extends Serializable> implements Map<Long, T> {
     /**
      * Adds a new object to the FileBuffer.
      *
+     * If the backing file has an IO error or cannot serializable a given object
+     * type, a RuntimeException will be thrown wrapping the original
+     * corresponding IOException.
+     *
      * @param obj The object to be added.
      * @return The UID to be used as a key to access the object.
-     * @throws IOException Indicates that serialization of the object failed.
      */
-    public final long add(T obj) throws IOException {
-        long id = write(obj);
-        _cache.put(id, obj);
-        ++_size;
-        return id;
+    public final long add(T obj) {
+        try {
+            long id = write(obj);
+            _cache.put(id, obj);
+            ++_size;
+            return id;
+        } catch(IOException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     /**
@@ -168,9 +175,8 @@ public class FileBuffer<T extends Serializable> implements Map<Long, T> {
      *
      * @param objs The objects to be added.
      * @return A list of UIDs to be used as keys to access the objects.
-     * @throws IOException Indicates that serialization of an object failed.
      */
-    public final List<Long> addAll(List<T> objs) throws IOException {
+    public final List<Long> addAll(List<T> objs) {
         List<Long> uids = new ArrayList<Long>(objs.size());
 
         for (T obj : objs) {
