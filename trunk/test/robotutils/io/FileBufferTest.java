@@ -50,7 +50,7 @@ public class FileBufferTest {
     public static File emptyFile;
     public static File testFile;
     public static File tempFile;
-    public static final int TEST_FILE_SIZE = 200;
+    public static final int TEST_FILE_SIZE = 400;
 
     /**
      * An object with a large memory footprint but a really easy to match hash.
@@ -86,9 +86,10 @@ public class FileBufferTest {
     @BeforeClass
     public static void setUpClass() throws Exception {
         // Create a test file entry so large that many of them can't be kept in the heap at one time
-        System.out.println("" + Runtime.getRuntime().maxMemory() / 200);
-        //new Random().nextBytes(new byte[Runtime.getRuntime().maxMemory()/1000]);
-        byte[] filler = new byte[0];
+        if (Runtime.getRuntime().maxMemory() / 200 > (long)Integer.MAX_VALUE)
+            throw new Exception("Heap is too large, cannot run tests.  Try again with a smaller heap.");
+        byte[] filler = new byte[(int)(Runtime.getRuntime().maxMemory() / 200)];
+        new Random().nextBytes(filler);
 
         // Create empty file.
         emptyFile = File.createTempFile("FileBufferEmptyFile", ".dat");
