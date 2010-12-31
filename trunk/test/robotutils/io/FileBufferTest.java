@@ -180,7 +180,6 @@ public class FileBufferTest {
                 assertEquals(uid, header.self);
                 assertTrue(instance.isValid(header.prev));
                 assertTrue(instance.isValid(header.self));
-                assertTrue(instance.isValid(header.next));
                 assertTrue(header.size > 0);
             }
         } catch (FileNotFoundException ex) {
@@ -217,10 +216,7 @@ public class FileBufferTest {
         try {
             FileBuffer instance = new FileBuffer(tempFile);
 
-            int oldSize = instance.size();
             long uid = instance.write("foobarWRITE");
-            assertEquals(oldSize + 1, instance.size());
-
             assertEquals("foobarWRITE", instance.get(uid));
 
         } catch (FileNotFoundException ex) {
