@@ -158,14 +158,8 @@ public class FileBufferTest {
                 assertTrue( instance.isValid(uid) );
             }
 
-            for (Long uid : (Set<Long>)instance.keySet()) {
-                assertFalse( instance.isValid(uid - 2) );
-            }
-
-            for (Long uid : (Set<Long>)instance.keySet()) {
-                assertFalse( instance.isValid(uid + 2) );
-            }
-
+            assertFalse( instance.isValid(-1) );
+            assertFalse( instance.isValid(testFile.length() + 10) );
         } catch (FileNotFoundException ex) {
             fail("Did not find data file: " + ex);
         }
