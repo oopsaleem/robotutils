@@ -33,6 +33,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -205,6 +206,8 @@ public class FileBufferTest {
             for (String foobar : instance.values()) {
                 assertEquals(TEST_FILE_BASE + (count++), foobar);
             }
+
+            assertEquals(TEST_FILE_SIZE, count);
         } catch (FileNotFoundException ex) {
             fail("Did not find data file: " + ex);
         }
@@ -216,13 +219,19 @@ public class FileBufferTest {
     @Test
     public void testWrite() throws Exception {
         System.out.println("write");
-        Serializable obj = null;
-        FileBuffer instance = null;
-        long expResult = 0L;
-        long result = instance.write(obj);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        
+        try {
+            FileBuffer instance = new FileBuffer(tempFile);
+
+            int oldSize = instance.size();
+            long uid = instance.write("foobarWRITE");
+            assertEquals(oldSize + 1, instance.size());
+
+            assertEquals("foobarWRITE", instance.get(uid));
+
+        } catch (FileNotFoundException ex) {
+            fail("Did not find data file: " + ex);
+        }
     }
 
     /**
@@ -249,12 +258,25 @@ public class FileBufferTest {
     @Test
     public void testEntrySet() {
         System.out.println("entrySet");
-        FileBuffer instance = null;
-        Set expResult = null;
-        Set result = instance.entrySet();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+
+        try {
+            FileBuffer<String> instance = new FileBuffer(testFile);
+            Set<Map.Entry<Long, String>> entrySet = instance.entrySet();
+
+            assertEquals(TEST_FILE_SIZE, entrySet.size());
+
+            int count = 0;
+            for (Map.Entry<Long, String> entry : entrySet) {
+                assertTrue(instance.isValid(entry.getKey()));
+                assertEquals(TEST_FILE_BASE + count, instance.get(entry.getKey()));
+                assertEquals(TEST_FILE_BASE + count, entry.getValue());
+                count++;
+            }
+
+            assertEquals(TEST_FILE_SIZE, count);
+        } catch (FileNotFoundException ex) {
+            fail("Did not find data file: " + ex);
+        }
     }
 
     /**
@@ -331,12 +353,22 @@ public class FileBufferTest {
     @Test
     public void testKeySet() {
         System.out.println("keySet");
-        FileBuffer instance = null;
-        Set expResult = null;
-        Set result = instance.keySet();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        
+        try {
+            FileBuffer<String> instance = new FileBuffer(testFile);
+            Set<Long> keySet = instance.keySet();
+
+            assertEquals(TEST_FILE_SIZE, keySet.size());
+            Long[] keys = keySet.toArray(new Long[0]);
+
+            for (int i = 0; i < TEST_FILE_SIZE; i++) {
+                assertTrue(instance.isValid(keys[i]));
+                assertEquals(TEST_FILE_BASE + i, instance.get(keys[i]));
+            }
+
+        } catch (FileNotFoundException ex) {
+            fail("Did not find data file: " + ex);
+        }
     }
 
     /**
@@ -345,12 +377,22 @@ public class FileBufferTest {
     @Test
     public void testValues() {
         System.out.println("values");
-        FileBuffer instance = null;
-        Collection expResult = null;
-        Collection result = instance.values();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+
+        try {
+            FileBuffer<String> instance = new FileBuffer(testFile);
+            Collection<String> values = instance.values();
+
+            assertEquals(TEST_FILE_SIZE, values.size());
+            
+            int count = 0;
+            for (String value : values) {
+                assertEquals(TEST_FILE_BASE + (count++), value);
+            }
+
+            assertEquals(TEST_FILE_SIZE, count);
+        } catch (FileNotFoundException ex) {
+            fail("Did not find data file: " + ex);
+        }
     }
 
     /**
@@ -359,13 +401,28 @@ public class FileBufferTest {
     @Test
     public void testGet() {
         System.out.println("get");
-        Object key = null;
-        FileBuffer instance = null;
-        Object expResult = null;
-        Object result = instance.get(key);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        
+        int numTests = 1000;
+        Random rnd = new Random();
+        ArrayList<Long> uids = new ArrayList<Long>(numTests);
+        ArrayList<String> contents = new ArrayList<String>(numTests);
+
+        try {
+            for (int i = 0; i < numTests; i++) {
+                FileBuffer<String> instance = new FileBuffer(tempFile);
+                String randStr = "FOO" + rnd.nextLong() + "BAR";
+
+                contents.add(randStr);
+                uids.add(instance.add(randStr));
+
+                int index = rnd.nextInt(contents.size());
+                assertEquals(contents.get(index), instance.get(uids.get(index)));
+                assertNull(instance.get(uids.get(index) + 3));
+                assertNull(instance.get(uids.get(index) - 3));
+            }
+        } catch (FileNotFoundException ex) {
+            fail("Did not find data file: " + ex);
+        }
     }
 
     /**
