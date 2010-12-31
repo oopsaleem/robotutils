@@ -189,8 +189,10 @@ public class FileBuffer<T extends Serializable> implements Map<Long, T> {
 
     /**
      * Internal function used to check whether a provided ID could possibly
-     * reference a valid location in the FileBuffer object.
-     * 
+     * reference a valid location in the FileBuffer object.  This is not a
+     * comprehensive test, use containsKey for that.
+     *
+     * @see FileBuffer#containsKey(java.lang.Object) 
      * @param uid The UID that is being tested.
      * @return True if the UID matches a valid object header in the FileBuffer.
      */
@@ -250,8 +252,7 @@ public class FileBuffer<T extends Serializable> implements Map<Long, T> {
         
         // Get entry header
         Entry entry = readHeader(uid);
-        if (entry == null)
-            throw new IOException("Could not locate object from UID.");
+        if (entry == null) return null;
         
         // Read actual stored object
         ByteBuffer payload = ByteBuffer.allocate((int)entry.size);
@@ -529,7 +530,7 @@ public class FileBuffer<T extends Serializable> implements Map<Long, T> {
 
             @Override
             public Iterator<Map.Entry<Long, T>> iterator() {
-                return new FileBufferIterator(_size);
+                return new FileBufferIterator(0);
             }
 
             @Override
@@ -693,8 +694,12 @@ public class FileBuffer<T extends Serializable> implements Map<Long, T> {
             // Read the entry from file
             try {
                 Entry e = read(uid);
-                obj = e.obj;
-                _cache.put(uid, obj);
+                if (e == null) {
+                    return null;
+                } else {
+                    obj = e.obj;
+                    _cache.put(uid, obj);
+                }
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             } catch (ClassNotFoundException ex) {
