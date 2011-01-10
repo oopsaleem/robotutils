@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package robotutils.io;
+package robotutils.data;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -39,7 +39,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
-import robotutils.io.FileBuffer.Entry;
+import robotutils.data.FileBuffer.Entry;
 
 /**
  * Test harness for FileBuffer, a file-backed Map implementation.
