@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package robotutils.io;
+package robotutils.data;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -46,7 +46,6 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import robotutils.data.LRUCache;
 
 /**
  * Implements a file-backed buffer for storing large objects that need to be
