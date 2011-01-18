@@ -37,6 +37,8 @@ import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 import java.nio.channels.FileChannel;
 import java.util.AbstractCollection;
+import java.util.AbstractList;
+import java.util.AbstractSequentialList;
 import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -707,6 +709,32 @@ public class FileBuffer<T extends Serializable> implements Map<Long, T> {
         }
 
         return obj;
+    }
+
+    /**
+     * List wrapper that provides access to the elements of the buffer in the
+     * order they were inserted.
+     *
+     * <i>Note: Since the internal representation of this buffer is a linked
+     * list, lookups on this wrapper require a linear traversal of the buffer
+     * headers. </i>
+     *
+     * @return A list backed by this buffer.
+     */
+    public List<T> asList() {
+        return new AbstractList<T>() {
+            ListIterator<Long> _iterator = new FileBufferHeaderIterator(0);
+
+            @Override
+            public T get(int i) {
+                return FileBuffer.this.get(new FileBufferHeaderIterator(i).next());
+            }
+
+            @Override
+            public int size() {
+                return FileBuffer.this.size();
+            }
+        };
     }
 
     /* The following functions are unsupported because this is a write-only buffer (no modifications!) */

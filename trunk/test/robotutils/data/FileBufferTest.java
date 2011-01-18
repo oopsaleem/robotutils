@@ -534,4 +534,34 @@ public class FileBufferTest {
         fail("Exception was not thrown by clear().");
     }
 
+    /**
+     * Test of asList method, of class FileBuffer.
+     */
+    @Test
+    public void testAsList() {
+        System.out.println("asList");
+
+        int numTests = 100;
+        Random rnd = new Random();
+        ArrayList<Long> uids = new ArrayList<Long>(numTests);
+        ArrayList<BigObject> contents = new ArrayList<BigObject>(numTests);
+
+        try {
+            FileBuffer<BigObject> instance = new FileBuffer(tempFile);
+            int offset = instance.size();
+
+            for (int i = 0; i < numTests; i++) {
+                BigObject bo = new BigObject(rnd.nextInt(), null);
+
+                contents.add(bo);
+                uids.add(instance.add(bo));
+
+                int index = rnd.nextInt(contents.size());
+                assertEquals(contents.get(index), instance.asList().get(index + offset));
+            }
+        } catch (FileNotFoundException ex) {
+            fail("Did not find data file: " + ex);
+        }
+    }
+
 }
