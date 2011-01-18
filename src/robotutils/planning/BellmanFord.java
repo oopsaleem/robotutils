@@ -124,6 +124,7 @@ public abstract class BellmanFord<State> {
         // Add the source node (has zero distance, and no previous node)
         Score<State> startScore = new Score();
         startScore.dist = 0.0;
+        _scores.clear();
         _scores.put(_source, startScore);
         
 
