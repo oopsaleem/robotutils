@@ -54,7 +54,8 @@ public abstract class BellmanFord<State> {
      * Contains the distance and path information from the last search performed
      * by the algorithm.  Should be accessible through the pathTo() function.
      *
-     * @see BellmanFord#pathTo
+     * @see BellmanFord#pathTo(java.lang.Object) 
+     * @see BellmanFord#costTo(java.lang.Object)
      */
     private LinkedHashMap<State, Score<State>> _scores = new LinkedHashMap(INITIAL_CAPACITY);
 
@@ -74,6 +75,7 @@ public abstract class BellmanFord<State> {
 
     /**
      * An internal storage class that contains scores associated with a state.
+     *
      * @param <State> the class representing a state
      */
     static final class Score<State> {
@@ -83,6 +85,7 @@ public abstract class BellmanFord<State> {
 
     /**
      * Returns the set of successor states to the specified state.
+     * 
      * @param s the specified state.
      * @return A set of successor states.
      */
