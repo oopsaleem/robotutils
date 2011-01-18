@@ -137,6 +137,7 @@ public abstract class BellmanFord<State> {
             // Add a blank score for this reachable node
             State u = reachable.iterator().next();
             _scores.put(u, new Score<State>());
+            reachable.remove(u);
 
             // Add any new neighbors to the list of reachable nodes
             for (State v : succ(u)) {
