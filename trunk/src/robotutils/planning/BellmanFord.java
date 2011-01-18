@@ -143,15 +143,17 @@ public abstract class BellmanFord<State> {
         }
 
         // Step 2: relax edges repeatedly
-        for (State u : _scores.keySet()) {
-            for (State v : succ(u)) {
-                Score<State> uScore = _scores.get(u);
-                Score<State> vScore = _scores.get(v);
-                double uvCost = c(u, v);
+        for (int i = 0; i < _scores.size() - 1; ++i) {
+            for (State u : _scores.keySet()) {
+                for (State v : succ(u)) {
+                    Score<State> uScore = _scores.get(u);
+                    Score<State> vScore = _scores.get(v);
+                    double uvCost = c(u, v);
 
-                if (uScore.dist + uvCost < vScore.dist) {
-                    vScore.dist = uScore.dist + uvCost;
-                    vScore.prev = u;
+                    if (uScore.dist + uvCost < vScore.dist) {
+                        vScore.dist = uScore.dist + uvCost;
+                        vScore.prev = u;
+                    }
                 }
             }
         }
