@@ -217,6 +217,25 @@ public abstract class BellmanFord<State> {
     }
 
     /**
+     * Returns the cost of the shortest path from the source node most recently
+     * used in a searchFrom() call to the specified goal node.
+     *
+     * @param goal The node to which a shortest path cost will be queried.
+     * @return The cost of the shortest valid path between the two nodes, or positive infinity if no path exists.
+     */
+    public double costTo(State goal) {
+
+        // Can't find a path if no valid search occurred
+        if (_source == null)
+            return Double.POSITIVE_INFINITY;
+        else if (_scores.containsKey(goal)) {
+            return _scores.get(goal).dist;
+        } else {
+            return Double.POSITIVE_INFINITY;
+        }
+    }
+
+    /**
      * Implements a single-query search by simply calling the searchFrom() and
      * pathTo() operations in sequence.
      *
