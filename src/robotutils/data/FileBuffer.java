@@ -667,7 +667,7 @@ public class FileBuffer<T extends Serializable> implements Map<Long, T> {
      * type, a RuntimeException will be thrown wrapping the original
      * corresponding IOException or ClassNotFoundException.
      *
-     * @param uid The UID reference of the object that is being retrieved.
+     * @param key The UID of the object that is being retrieved (must be a Long).
      * @return The object, or null if the reference is not valid.
      */
     public T get(Object key) {
@@ -745,7 +745,7 @@ public class FileBuffer<T extends Serializable> implements Map<Long, T> {
      *
      * @param k
      * @param v
-     * @return
+     * @return Unspecified, this function will always throw an exception.
      */
     public T put(Long k, T v) {
         throw new UnsupportedOperationException("Not supported.  Please use the 'add' function.");
@@ -766,7 +766,7 @@ public class FileBuffer<T extends Serializable> implements Map<Long, T> {
      * Not supported because this is a write-to-EOF buffer.
      *
      * @param o
-     * @return
+     * @return Unspecified, this function will always throw an exception.
      */
     public T remove(Object o) {
         throw new UnsupportedOperationException("Not supported.");

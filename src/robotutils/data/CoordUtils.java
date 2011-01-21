@@ -32,8 +32,10 @@ public class CoordUtils {
 
     /**
      * Returns Manhattan distance from this point to another.
-     * @param that the other point
-     * @return the Manhattan distance to the other point
+     * 
+     * @param a the first point
+     * @param b the second point
+     * @return the Manhattan distance between the two points
      */
     public static final double mdist(Coordinate a, Coordinate b) {
 
@@ -53,8 +55,10 @@ public class CoordUtils {
 
     /**
      * Returns Euclidean distance from this point to another.
-     * @param that the other point
-     * @return the Euclidean distance to the other point
+     *
+     * @param a the first point
+     * @param b the second point
+     * @return the Euclidean distance between the two points
      */
     public static final double edist(Coordinate a, Coordinate b) {
         

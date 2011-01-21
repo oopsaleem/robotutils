@@ -108,7 +108,7 @@ public class PriorityQueue<E> {
 
     /**
      * Make a copy of another PriorityQueue.
-     * @param comparator comparison operator to use when ordering elements
+     * @param c the PriorityQueue that will be cloned
      */
     public PriorityQueue(PriorityQueue<? extends E> c) {
         _queue = (Vector)c._queue.clone();

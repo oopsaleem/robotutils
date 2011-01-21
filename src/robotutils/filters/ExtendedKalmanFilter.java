@@ -90,7 +90,7 @@ public abstract class ExtendedKalmanFilter extends KalmanFilter {
     }
     
     /**
-     * @see KalmanFilter#predict(Jama.Matrix)
+     * @see KalmanFilter#predict(org.apache.commons.math.linear.RealMatrix)
      */
     @Override
     public void predict(RealMatrix u) {
@@ -102,7 +102,7 @@ public abstract class ExtendedKalmanFilter extends KalmanFilter {
     }
     
     /**
-     * @see KalmanFilter#update(Jama.Matrix) 
+     * @see KalmanFilter#update(org.apache.commons.math.linear.RealMatrix) 
      */
     @Override
     public void update(RealMatrix z) {
@@ -113,7 +113,7 @@ public abstract class ExtendedKalmanFilter extends KalmanFilter {
     }
     
     /**
-     * @see KalmanFilter#setState(Jama.Matrix) 
+     * @see KalmanFilter#setState(org.apache.commons.math.linear.RealMatrix) 
      */
     @Override
     public void setState(RealMatrix x) {

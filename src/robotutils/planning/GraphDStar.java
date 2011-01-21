@@ -97,10 +97,12 @@ public abstract class GraphDStar<V, E> extends DStarLite<V> {
 
     /**
      * A wrapper function that searches for a set of edges that yields the
-     * optimal path of vertices returned by D*-lite.
+     * optimal path of vertices returned by D*-lite.  The start and end points
+     * are assumed to already be specified using the constructor and setStart.
      *
-     * @param start the starting vertex
-     * @param goal the ending vertex
+     * @see GraphDStar#GraphDStar(org.jgrapht.Graph, java.lang.Object, java.lang.Object) 
+     * @see GraphDStar#setStart(java.lang.Object)
+     *
      * @return a list of edges implementing an optimal path
      */
     public List<E> search() {
