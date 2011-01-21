@@ -60,15 +60,17 @@ public class Quaternion implements Cloneable, Serializable {
     public static final double SINGULARITY_SOUTH_POLE = -0.49999;
 
     /**
-     * 2D cartesian coordinates.
+     * 4D quaternion coordinates.
      */
     private final double w, x, y, z;
 
     /**
      * Construct a new quaternion.
+     * 
+     * @param w the w-coordinate of the object
      * @param x the x-coordinate of the object
      * @param y the y-coordinate of the object
-     * @param theta the planar rotation of the object
+     * @param z the z-coordinate of the object
      */
     public Quaternion(double w, double x, double y, double z) {
         this.w = w;
@@ -76,13 +78,6 @@ public class Quaternion implements Cloneable, Serializable {
         this.y = y;
         this.z = z;
     }
-    
-    /**
-     * Construct a new quaternion.
-     * @param x the x-coordinate of the object
-     * @param y the y-coordinate of the object
-     * @param theta the planar rotation of the object
-     */
     
     /**
      * Wrap a quaternion in vector form.
@@ -134,7 +129,12 @@ public class Quaternion implements Cloneable, Serializable {
     public static Quaternion fromRotation(RealMatrix m) {
         throw new UnsupportedOperationException("Not implemented yet.");
     }
-    
+
+    /**
+     * Converts quaternion to (3x3) rotation matrix.
+     *
+     * @return a 2D 3x3 rotation matrix representing the quaternion.
+     */
     public RealMatrix toRotation() {
         double[][] m = new double[3][3];
         

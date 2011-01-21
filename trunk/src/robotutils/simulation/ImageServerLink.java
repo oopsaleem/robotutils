@@ -81,7 +81,6 @@ public class ImageServerLink implements Runnable {
     /**
      * Attempt a connection to the ImageServer, or do nothing if there is
      * already a connection open.
-     * @return the success of the connection attempt.
      */
     public void connect(String hostname, int port) {
         if (isConnected()) return;
@@ -145,7 +144,7 @@ public class ImageServerLink implements Runnable {
     
     /**
      * Handler that dispatches images to all of the listeners.
-     * @param image the image received from the server.
+     * @param evt the image event received from the server.
      */
     protected void fireUpdateEventMessage(ImageEvent evt) {
         Object[] listeners = listenerList.getListenerList();
