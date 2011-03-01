@@ -160,4 +160,104 @@ public class KuhnMunkresAlgorithm {
         return computeValueAssignment(costs);
     }
 
+    /**
+     * Takes in a matrix of non-negative values where the row indices represent
+     * possible <b>executors</b> of the task and the column indices represent
+     * possible <b>tasks</b>.  The returned matrix contains a 1 for entries
+     * corresponding to an assignment of executors to tasks.
+     *
+     * Each executor will be assigned at least one task, but possibly more.
+     * Every task will be assigned to exactly one executor. The algorithm
+     * attempts to maximize the total value of the assignment by augmenting
+     * the optimal matching greedily to compute a maximal edge cover.
+     *
+     * @param values a non-negative matrix of values.
+     * @return an indicator matrix of assignments from executors to tasks.
+     */
+    public static int[][] computeValueMultiAssignment(double[][] values) {
+
+        // Verify the matrix has reasonable size
+        int numRows = values.length;
+        if (numRows <= 0)
+            throw new IllegalArgumentException("Matrix has zero rows.");
+
+        int numColumns = values[0].length;
+        if (numColumns <= numRows)
+            throw new IllegalArgumentException("Matrix has zero columns");
+
+        // Find initial matching using Hungarian algorithm
+        int[][] assignment = computeValueAssignment(values);
+
+        // Greedily allocate remaining tasks
+        for (int col = 0; col < numColumns; ++col) {
+
+            // Find the highest value executor for each task
+            double maxValue = Double.MIN_VALUE;
+            int maxRow = -1;
+            boolean isAssigned = false;
+
+            for (int row = 0; row < numRows && !isAssigned; ++row) {
+
+                if (assignment[row][col] > 0)
+                    isAssigned = true;
+
+                if (values[row][col] >= maxValue) {
+                    maxValue = values[row][col];
+                    maxRow = row;
+                }
+            }
+
+            // If a task is unallocated, assign it here
+            if (!isAssigned)
+                assignment[maxRow][col] = 1;
+        }
+
+        return assignment;
+    }
+
+    /**
+     * Takes in a matrix of non-negative costs where the row indices represent
+     * possible <b>executors</b> of the task and the column indices represent
+     * possible <b>tasks</b>.  The returned matrix contains a 1 for entries
+     * corresponding to an assignment of executors to tasks.
+     *
+     * Each executor will be assigned at least one task, but possibly more.
+     * Every task will be assigned to exactly one executor. The algorithm
+     * attempts to maximize the total value of the assignment by augmenting
+     * the optimal matching greedily to compute a maximal edge cover.
+     *
+     * @param costs a non-negative matrix of costs.
+     * @return an indicator matrix of assignments from executors to tasks.
+     */
+    public static int[][] computeCostMultiAssignment(double[][] costs) {
+
+        // Verify the matrix has reasonable size
+        int numRows = costs.length;
+        if (numRows <= 0)
+            throw new IllegalArgumentException("Matrix has zero rows.");
+
+        int numColumns = costs[0].length;
+        if (numColumns <= 0)
+            throw new IllegalArgumentException("Matrix has zero columns");
+
+        // Find the largest number in the entire matrix
+        double maxValue = Double.MIN_VALUE;
+        for (double[] row : costs) {
+            for (double val : row) {
+                if (maxValue < val)
+                    maxValue = val;
+            }
+        }
+
+        // Subtract the value of the largest element from each cost, to get
+        // positive "value" (which is what will be maximized)
+        for (int row = 0; row < numRows; ++row) {
+            for (int col = 0; col < numColumns; ++col) {
+                costs[row][col] = maxValue - costs[row][col];
+            }
+        }
+
+        // Find the solution for the value-maximization problem
+        return computeValueMultiAssignment(costs);
+    }
 }
