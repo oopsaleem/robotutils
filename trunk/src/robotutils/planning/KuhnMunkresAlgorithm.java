@@ -44,19 +44,6 @@ import java.util.Set;
  */
 public class KuhnMunkresAlgorithm {
 
-    private float[] xLabeling;
-    private float[] yLabeling;
-    private Set<Integer> setS;
-    private Set<Integer> setT;
-    private Set<Integer> setN;
-
-    /**
-     * We can use this as placeholder for the matching graph,
-     * which uses BipartiteGraph instead a more lightweight version of this
-     * e.g. BipartiteUnweightedGraph
-     */
-    private final static float CONNECT = 1f;
-
     /**
      * Takes in a matrix of non-negative costs where the row indices represent
      * possible <b>executors</b> of the task and the column indices represent
