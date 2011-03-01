@@ -26,7 +26,7 @@ import java.util.Set;
  * Another working description you can find in:
  * "Graph Theory with Applications" from J.A. Bondy and U.S.R. Murty.
  * <p/>
- * Elsewhere in the literature KuhnMunkres it is called hungarian *algorithm*.
+ * Elsewhere in the literature Kuhn-Munkres is called the Hungarian *algorithm*.
  * Normally the algorithm calculates a perfect matching for a
  * maximal weighted, bipartite graph.
  * The hungarian *method* only calculates a perfect matching for a 
@@ -43,77 +43,72 @@ import java.util.Set;
  * @author pkv
  */
 public class KuhnMunkresAlgorithm {
+
+    private float[] xLabeling;
+    private float[] yLabeling;
+    private Set<Integer> setS;
+    private Set<Integer> setT;
+    private Set<Integer> setN;
+
+    /**
+     * We can use this as placeholder for the matching graph,
+     * which uses BipartiteGraph instead a more lightweight version of this
+     * e.g. BipartiteUnweightedGraph
+     */
+    private final static float CONNECT = 1f;
+
+    /**
+     * Takes in a matrix of non-negative costs where the row indices represent
+     * possible <b>executors</b> of the task and the column indices represent
+     * possible <b>tasks</b>.  The returned matrix contains a 1 for entries
+     * corresponding to an assignment of executors to tasks.
+     *
+     * Each executor will be assigned exactly one task.
+     *
+     * @param costs a non-negative matrix of costs.
+     * @return an indicator matrix of assignments from executors to tasks.
+     */
+    public static int[][] computeAssignments(double[][] costs) {
+
+        int numRows = costs.length;
+        assert numRows > 0 : "Matrix must have at least one row.";
+
+        int numColumns = costs[0].length;
+        assert numColumns > 0 : "Matrix must have at least one column.";
+        
+        // Find the largest number in the entire matrix
+        double maxValue = Double.MIN_VALUE;
+        for (double[] row : costs) {
+            for (double val : row) {
+                if (maxValue < val)
+                    maxValue = val;
+            }
+        }
+
+        // Subtract the value of the largest element from each cost, to get
+        // positive "value" (which is what will be maximized)
+        for (int row = 0; row < numRows; ++row) {
+            for (int col = 0; col < numColumns; ++col) {
+                costs[row][col] = maxValue - costs[row][col];
+            }
+        }
+
+        // Pad until there are at least as many executors as there are tasks
+        double[][] values = new double[Math.max(numRows, numColumns)][];
+        System.arraycopy(costs, 0, values, 0, numRows);
+        for (int row = numRows; row < Math.max(numRows, numColumns); ++row)
+            values[row] = new double[numColumns];
+        numRows = Math.max(numRows, numColumns);
+
+        // TODO; finish the Kuhn-Munkres algorithm
+        throw new UnsupportedOperationException("Not implemented yet.");
+    }
 //
-//    private float floatMax;
-//    private int NO_X;
-//    private int NO_Y;
-//    private float[] xLabeling;
-//    private float[] yLabeling;
-//    private BipartiteWeightedGraph graph;
-//    private BipartiteWeightedGraph eqSubGraph;
-//    private BipartiteWeightedGraph matching;
-//    private Set<Integer> setS;
-//    private Set<Integer> setT;
-//    private Set<Integer> setN;
-//
-//    /**
-//     * We can use this as placeholder for the matching graph,
-//     * which uses BipartiteGraph instead a more lightweight version of this
-//     * e.g. BipartiteUnweightedGraph
-//     */
-//    private final static float CONNECT = 1f;
-//
-//    /**
-//     * Takes in a matrix of non-negative costs where the row indices represent
-//     * possible <b>executors</b> of the task and the column indices represent
-//     * possible <b>tasks</b>.  The returned matrix contains a 1 for entries
-//     * corresponding to an assignment of executors to tasks.
-//     *
-//     * Each executor will be  assigned exactly one task.
-//     *
-//     * @param costMatrix a non-negative matrix of costs.
-//     * @return an indicator matrix of assignments from executors to tasks.
-//     */
-//    public static int[][] computeAssignments(float[][] costMatrix) {
-//
-//        NO_X = costMatrix[0].length; // COLUMNS
-//        NO_Y = costMatrix.length;    // ROWS
-//
-//        assert NO_X > 0 : "Matrix must have at least one column.";
-//        assert NO_Y > 0 : "Matrix must have at least one row.";
-//
-//        // TODO performance: use a static big number instead of determining it?
-//        floatMax = AssignmentHelper.getFloatMax(Math.max(costMatrix.length, costMatrix[0].length));
-//        graph = new BipartiteWeightedGraph(NO_X, NO_Y);
-//
-//        for (int x = 0; x < NO_X; x++) {
-//            for (int y = 0; y < NO_Y; y++) {
-//                if (costMatrix[y][x] < floatMax) {
-//                    // this algo calculates maximal weighted bipartite graph
-//                    // we need the minimal one
-//
-//                    //Float.MAX_VALUE does not work because for large numbers it is 'x + 1 = x'
-//                    graph.setEdge(x, y, floatMax - costMatrix[y][x]);
-//                } else {
-//                    graph.setEdge(x, y, 0);
-//                }
-//            }
-//        }
-//        if (NO_Y < NO_X) {
-//            graph.addYNodes(NO_X - NO_Y);
-//            for (int x = 0; x < NO_X; x++) {
-//                for (int y = NO_Y; y < NO_X; y++) {
-//                    graph.setEdge(x, y, 0);
-//                }
-//            }
-//            NO_Y = NO_X;
-//        }
-//
-//        xLabeling = new float[NO_X];
-//        yLabeling = new float[NO_Y];
+//        xLabeling = new float[numColumns];
+//        yLabeling = new float[numRows];
 //
 //        // calulate initial labeling
-//        for (int x = 0; x < NO_X; x++) {
+//        for (int x = 0; x < numColumns; x++) {
 //            float max = -1;
 //            for (int y : graph.getX(x)) {
 //                float tmp = graph.getEdge(x, y);
@@ -126,20 +121,20 @@ public class KuhnMunkresAlgorithm {
 //        }
 //
 //        // the edges of eqSubGraph depends on the labeling
-//        eqSubGraph = new BipartiteWeightedGraph(NO_X, NO_Y);
+//        eqSubGraph = new BipartiteWeightedGraph(numColumns, numRows);
 //        // calculate eqSubGraph from labeling
 //        recalculateEqSubGraph();
 //
 //        // S is a subset of X (columns)
-//        setS = new FastSet<Integer>(NO_X);
+//        setS = new FastSet<Integer>(numColumns);
 //        // T is a subset of Y (rows)
-//        setT = new FastSet<Integer>(NO_Y);
+//        setT = new FastSet<Integer>(numRows);
 //
 //        //TODO use a lighter graph (without weight) for matching
 //        // we can choose any matching M
 //        //TODO PERFORMANCE use a fast heuristic to get a better starting matching
-//        matching = new BipartiteWeightedGraph(NO_X, NO_Y);
-//        setN = new FastSet<Integer>(NO_Y);
+//        matching = new BipartiteWeightedGraph(numColumns, numRows);
+//        setN = new FastSet<Integer>(numRows);
 //
 //        // Main loop
 //        while (true) {
@@ -148,7 +143,7 @@ public class KuhnMunkresAlgorithm {
 //            // if no such node exists then we have either an optimal matching
 //            // (all x nodes are M-saturated) or not all x nodes can be valid assigned
 //            int u = -1;
-//            for (int x = 0; x < NO_X; x++) {
+//            for (int x = 0; x < numColumns; x++) {
 //                if (graph.getX(x).size() > 0) {
 //                    if (matching.getX(x).size() == 0) {
 //                        u = x;
@@ -277,9 +272,9 @@ public class KuhnMunkresAlgorithm {
 //
 //        // transform the matching graph into the necessary assignment (matrix)
 //        // at least we should calculate one row-assignment for EVERY column
-//        int assignment[][] = new int[NO_X][];
-//        for (int x = 0; x < NO_X; x++) {
-//            for (int y = 0; y < NO_Y; y++) {
+//        int assignment[][] = new int[numColumns][];
+//        for (int x = 0; x < numColumns; x++) {
+//            for (int y = 0; y < numRows; y++) {
 //                if (matching.getY(y).contains(x) &&
 //                        graph.getEdge(x, y) > 0) {
 //                    assignment[x] = new int[]{y, x};
@@ -295,7 +290,7 @@ public class KuhnMunkresAlgorithm {
 //     */
 //    private void recalculateEqSubGraph() {
 //        eqSubGraph.clear();
-//        for (int x = 0; x < NO_X; x++) {
+//        for (int x = 0; x < numColumns; x++) {
 //            for (int y : graph.getX(x)) {
 //                float tmp = graph.getEdge(x, y);
 //                if (xLabeling[x] + yLabeling[y] == tmp) {
