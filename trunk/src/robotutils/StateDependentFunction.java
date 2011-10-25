@@ -33,7 +33,9 @@ import org.apache.commons.math.linear.RealMatrix;
  * This interface defines a method that will take a state and return some
  * function of that state as another matrix.  One use of this is to allow
  * filters to handle arbitrary linearizations.
+ * 
  * @author Prasanna Velagapudi <pkv@cs.cmu.edu>
+ * @deprecated 
  */
 public interface StateDependentFunction {
     /**
