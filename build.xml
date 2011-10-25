@@ -10,8 +10,7 @@
 <project name="robotutils" default="default" basedir=".">
     <description>Builds, tests, and runs the project robotutils.</description>
     <import file="nbproject/build-impl.xml"/>
-
-    <import file="nbproject/profiler-build-impl.xml"/>    <!--
+    <!--
 
     There exist several targets which are by default empty and which can be 
     used for execution of your tasks. These targets are usually executed 
@@ -72,40 +71,4 @@
     nbproject/build-impl.xml file. 
 
     -->
-
-    <!-- Added targets for building source and javadoc jar files -->
-    <target description="Bundle sources in a JAR" name="package-sources">
-        <jar basedir="src" destfile="dist/${ant.project.name}-sources.jar"/>
-    </target>
-    <target depends="-javadoc-build" description="Bundle javadoc in a JAR" name="package-doc">
-        <jar basedir="dist/javadoc" destfile="dist/${ant.project.name}-javadoc.jar"/>
-    </target>
-
-    <!-- Added targets to build a "fat-jar" that includes all dependencies -->
-    <target name="-unjar-and-copy-lib-jars">
-        <unjar dest="${build.classes.dir}">
-            <fileset dir="lib">
-                <include name="**/*.jar"/>
-            </fileset>
-            <patternset>
-                <exclude name="META-INF/**"/>
-                <exclude name="/*"/>
-            </patternset>
-        </unjar>
-    </target>
-
-    <target depends="init,compile,-pre-pre-jar,-pre-jar,-unjar-and-copy-lib-jars" name="fat-jar">
-        <property location="${build.classes.dir}" name="build.classes.dir.resolved"/>
-        <jar destfile="${dist.jar}">
-            <fileset dir="${build.classes.dir}"/>
-            <manifest>
-                <attribute name="Main-Class" value="${main.class}"/>
-            </manifest>
-        </jar>
-        <echo>To run this application from the command line without Ant, try:</echo>
-        <property location="${dist.jar}" name="dist.jar.resolved"/>
-        <echo>java -jar "${dist.jar.resolved}"</echo>
-    </target>
-
-    <target depends="clean,fat-jar" name="clean-and-fat-jar"/>
 </project>
