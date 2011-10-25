@@ -38,6 +38,9 @@ import robotutils.util.PriorityQueue;
  * in [Koenig 2002]. D*-lite is an incremental variant of the A* search
  * algorithm, meaning that it can cheaply update itself to account for new
  * obstacles.
+ * 
+ * This version of the algorithm uses a custom PriorityQueue implementation 
+ * that allows the heap to be reordered after updates, without fully rebuilding.
  *
  * Source: Koenig, S. and Likhachev, M. 2002. D*lite. In Eighteenth National
  * Conference on Artificial Intelligence (Edmonton, Alberta, Canada, July 28 -
