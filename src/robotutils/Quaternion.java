@@ -319,6 +319,6 @@ public class Quaternion implements Cloneable, Serializable {
     
     @Override
     public String toString() {
-        return "Q[" + w + "," + x + "," + y + "," + z + "]";
+        return "Q[" + toRoll() + "," + toPitch() + "," + toYaw() + "]";
     }   
 }
